@@ -1,0 +1,27 @@
+const express = require("express");
+const jwt = require("jsonwebtoken");
+
+const {
+  signupController,
+  loginController,
+  logOutController,
+  fetchAllUsers,
+  getUserDetails,
+  searchUsers,
+} = require("../controller/userController");
+const isLoggedIn = require("../middleware/isLoggedIn");
+const { ai } = require("../controller/ai");
+const checkAuth = require("../middleware/checkAuth");
+
+const Router = express.Router();
+
+Router.post("/login", loginController);
+Router.post("/signup", signupController);
+Router.post("/logout", logOutController);
+Router.get("/get-user-details", isLoggedIn, getUserDetails);
+Router.get("/fetchAllUsers", isLoggedIn, fetchAllUsers);
+Router.post("/ai", ai);
+Router.get("/searchUsers", searchUsers);
+Router.get("/check-auth", checkAuth);
+
+module.exports = Router;
