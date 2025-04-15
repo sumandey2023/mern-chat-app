@@ -78,14 +78,9 @@ const Auth = () => {
 
   const loginHandler = async () => {
     try {
-      // const { data } = await axios.post(
-      //   "http://localhost:5000/user/login",
-      //   formData
-      // );
       toast.info("Loging you up please wait..", {
         position: "top-right",
         toastId: "signup-toast",
-        // prevents duplicate toasts
       });
       const { data } = await axios.post(
         "http://localhost:5000/user/login", // or /signup
@@ -101,28 +96,6 @@ const Auth = () => {
       toast.error(errorMessage, { position: "top-right" });
     }
   };
-
-  // const signUpHandler = async () => {
-  //   if (formData.password !== formData.confirmPassword) {
-  //     toast.error("Passwords do not match!", { position: "top-right" });
-  //     return;
-  //   }
-
-  //   try {
-  //     const { data } = await axios.post(
-  //       "http://localhost:5000/user/signup",
-  //       formData,
-  //       {
-  //         withCredentials: true,
-  //       }
-  //     );
-  //     localStorage.setItem("token", data.token);
-  //     navigate("/app/welcome", { state: { toastMessage: data.message } });
-  //   } catch (error) {
-  //     const errorMessage = error.response?.data?.message || "Signup failed!";
-  //     toast.error(errorMessage, { position: "top-right" });
-  //   }
-  // };
 
   const signUpHandler = async () => {
     if (formData.password !== formData.confirmPassword) {
@@ -379,6 +352,7 @@ const Auth = () => {
         pauseOnHover
         theme="colored"
       />
+      <h4 class="fixed bottom-2 right-2 text-lg ">made with ❤️ by Suman</h4>
     </div>
   );
 };

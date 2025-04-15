@@ -96,7 +96,6 @@ const signupController = asyncHandler(async (req, res) => {
         public_id: username || undefined,
       }
     );
-    console.log("Uploaded image URL:", result.secure_url);
 
     newUser = await userModel.create({
       name,
@@ -178,7 +177,6 @@ const fetchAllUsers = asyncHandler(async (req, res) => {
       _id: { $ne: req.user._id },
     })
     .select("-password");
-  console.log(users);
 
   res.send(users);
 });
@@ -210,13 +208,26 @@ const searchUsers = asyncHandler(async (req, res) => {
     const users = await userModel
       .find({
         _id: { $ne: currentUserId }, // Exclude logged-in user
-        name: { $regex: `^${search}`, $options: "i" }, // Search by name starting with input (case-insensitive)
+        $or: [
+          { name: { $regex: `^${search}`, $options: "i" } },
+          { username: { $regex: `^${search}`, $options: "i" } },
+        ], // Search by name starting with input (case-insensitive)
       })
       .select("-password"); // Don't send password
 
     res.json(users);
   } catch (err) {
     res.status(401).json({ message: "Invalid token" });
+  }
+});
+
+const getChatUser = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await userModel.findById(userId).select("-password");
+    res.json(user);
+  } catch (error) {
+    console.log(error);
   }
 });
 module.exports = {
@@ -226,4 +237,5 @@ module.exports = {
   fetchAllUsers,
   getUserDetails,
   searchUsers,
+  getChatUser,
 };

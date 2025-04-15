@@ -1,17 +1,42 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MessageOther from "./MessageOther";
 import MessageSelf from "./MessageSelf";
 import MicIcon from "@mui/icons-material/Mic";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import TelegramIcon from "@mui/icons-material/Telegram";
-import { IconButton } from "@mui/material";
+import { Avatar, IconButton } from "@mui/material";
 import { useMediaQuery } from "react-responsive";
 import { useSelector } from "react-redux";
-
+import { useParams } from "react-router-dom";
+import axios from "axios";
 const ChatArea = () => {
   const isSmallScreen = useMediaQuery({ maxWidth: 1150 });
   const lightTheam = useSelector((state) => state.themeKey);
+  const [receiverData, setreceiverData] = useState([]);
+  const { id } = useParams();
+
+  useEffect(() => {
+    const fetchReceiverData = async () => {
+      try {
+        const data = await axios.get(
+          `http://localhost:5000/user/get-chat-user/${id}`,
+          {
+            credentials: "include", // This will include cookies in the request
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const receivedData = data.data;
+        setreceiverData(receivedData);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchReceiverData();
+  }, [id]);
 
   return (
     <div
@@ -32,19 +57,21 @@ const ChatArea = () => {
               : "bg-[#2A2D27] border-gray-700"
           }`}
         >
-          <div
-            className={`w-[40px] h-[40px] lg:w-[50px] lg:h-[50px] rounded-full flex justify-center items-center text-white text-xl lg:text-2xl font-bold bg-gradient-to-br from-blue-500 to-blue-600 shadow-md ${
-              lightTheam ? "" : "from-blue-600 to-blue-700"
-            }`}
-          >
-            A
-          </div>
+          <Avatar
+            alt="Profile"
+            src={receiverData?.pic}
+            sx={{
+              width: 65,
+              height: 65,
+              border: `2px solid white`,
+            }}
+          />
           <h1
             className={`text-base lg:text-lg font-semibold flex-grow ml-3 ${
               lightTheam ? "text-gray-800" : "text-white"
             }`}
           >
-            Suman
+            {receiverData.name}
           </h1>
           <DeleteIcon
             className={`cursor-pointer transition-all duration-300 hover:scale-110 ${

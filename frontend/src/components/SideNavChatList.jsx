@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import NightlightIcon from "@mui/icons-material/Nightlight";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import PublicIcon from "@mui/icons-material/Public";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import GroupIcon from "@mui/icons-material/Group";
 import PanoramaFishEyeIcon from "@mui/icons-material/PanoramaFishEye";
@@ -105,14 +106,6 @@ const SideNavChatList = () => {
             <ChatIcon className="text-white text-3xl" />
           </IconButton>
 
-          {/* <IconButton
-            className="hover:bg-white/10 p-2 transition"
-            onClick={() => {
-              navigate("/app");
-            }}
-          >
-            <PersonAddIcon className="text-white text-3xl" />
-          </IconButton> */}
           <IconButton
             className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110"
             onClick={() => {
@@ -144,8 +137,13 @@ const SideNavChatList = () => {
 
         {/* Bottom Section - Settings & Profile */}
         <div className="flex flex-col items-center space-y-6 pb-3">
-          <IconButton className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110">
-            <SettingsIcon className="text-white text-3xl" />
+          <IconButton
+            className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110"
+            onClick={() => {
+              navigate("public");
+            }}
+          >
+            <PublicIcon className="text-white text-3xl" />
           </IconButton>
           <IconButton
             className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110"

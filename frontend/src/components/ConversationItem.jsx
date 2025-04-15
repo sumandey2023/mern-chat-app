@@ -7,23 +7,13 @@ const ConversationsItem = (props) => {
   const navigate = useNavigate();
   const lightTheme = useSelector((state) => state.themeKey);
 
-  console.log(props.data);
-
   return (
     <div
       className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
         props.lightTheam ? "" : "hover:!bg-[#2A2D27]"
       }`}
-      onClick={() => navigate("chat")}
+      onClick={() => navigate(`chat/${props.data._id}`)}
     >
-      {/* Avatar */}
-      {/* <div
-        className={`w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-2xl shadow-md ${
-          props.lightTheam ? "" : "!from-blue-600 !to-blue-700"
-        }`}
-      >
-        {props.data.name[0]}
-      </div> */}
       <Avatar
         alt="Profile"
         src={props.data?.pic}

@@ -8,7 +8,7 @@ import axios from "axios";
 import Lottie from "lottie-react";
 import MessageSelf from "./MessageSelf";
 import MessageOther from "./MessageOther";
-// import InputEmoji from "react-input-emoji";
+
 
 const AIChat = () => {
   const [userData, setUserData] = useState({});

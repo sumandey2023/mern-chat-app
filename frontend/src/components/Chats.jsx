@@ -50,7 +50,6 @@ const Chats = ({ data = dummyData }) => {
           }
         );
         setUsers(data);
-        console.log("Fetched users:", data);
       } catch (error) {
         console.error("Error fetching users:", error);
       } finally {
@@ -84,28 +83,6 @@ const Chats = ({ data = dummyData }) => {
         >
           Chats
         </h1>
-
-        {/* Search Bar */}
-        {/* <div
-          className={`flex items-center rounded-full shadow-md px-4 py-2 mb-4 transition-all duration-300 ${
-            lightTheme
-              ? "bg-white hover:shadow-lg"
-              : "bg-[#2A2D27] hover:shadow-lg border border-gray-700"
-          }`}
-        >
-          <SearchIcon
-            className={`text-gray-500 ${lightTheme ? "" : "!text-gray-400"}`}
-          />
-          <input
-            type="text"
-            placeholder="Search chats..."
-            className={`w-full px-3 outline-none bg-transparent text-lg ${
-              lightTheme ? "" : "!text-white placeholder-gray-400"
-            }`}
-          />
-        </div> */}
-
-        {/* Chat List with Scroll */}
 
         {users.length ? (
           <div

@@ -45,6 +45,7 @@ import { useSelector } from "react-redux";
 import AIChat from "./components/AIChat";
 import Profile from "./components/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Public from "./components/Public";
 
 const App = () => {
   const isSmallScreen = useMediaQuery({ maxWidth: 1150 });
@@ -85,12 +86,13 @@ const App = () => {
         }
       >
         <Route path="welcome" element={<Welcome />} />
-        <Route path="chat" element={<ChatArea />} />
+        <Route path="chat/:id" element={<ChatArea />} />
         <Route path="groups" element={<Groups />} />
         <Route path="chats" element={<Chats />} />
         <Route path="create-group" element={<CreateGroup />} />
         <Route path="ai-chat" element={<AIChat />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="public" element={<Public />} />
       </Route>
     </Routes>
   );
