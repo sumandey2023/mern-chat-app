@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Lottie from "lottie-react";
+import api from "../../config/axios";
 import { Avatar } from "@mui/material";
 
 const dummyData = [
@@ -43,12 +44,9 @@ const Chats = ({ data = dummyData }) => {
     const fetchAllUsers = async () => {
       try {
         setLoading(true);
-        const { data } = await axios.get(
-          "http://localhost:5000/user/fetchAllUsers",
-          {
-            withCredentials: true,
-          }
-        );
+        const { data } = await api.get("/user/fetchAllUsers", {
+          withCredentials: true,
+        });
         setUsers(data);
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -86,8 +84,8 @@ const Chats = ({ data = dummyData }) => {
 
         {users.length ? (
           <div
-            className={`bg-white rounded-2xl flex-1 overflow-y-auto no-scrollbar ${
-              lightTheme ? "" : "!bg-[#3C3D37]"
+            className={`rounded-2xl flex-1 overflow-y-auto no-scrollbar transition-colors duration-300 ${
+              lightTheme ? "bg-white" : "bg-[#3C3D37]"
             }`}
             style={{ maxHeight: "78vh" }}
           >
@@ -96,51 +94,40 @@ const Chats = ({ data = dummyData }) => {
                 <div
                   key={index}
                   onClick={() => navigate(`/app/chat`)}
-                  className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
-                    lightTheme ? "" : "hover:!bg-[#2A2D27]"
+                  className={`flex items-center justify-between gap-4 p-4 rounded-xl cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md hover:scale-[1.02] ${
+                    lightTheme
+                      ? "bg-white hover:bg-gray-100"
+                      : "bg-[#1E1E1E] hover:!bg-[#2A2D27]"
                   }`}
                 >
-                  <div
-                    className={`w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-2xl shadow-md ${
-                      lightTheme ? "" : "!from-blue-600 !to-blue-700"
-                    }`}
-                  >
-                    {/* {item.name[0]} */}
-
+                  {/* Avatar & Info */}
+                  <div className="flex items-center gap-4 min-w-0">
                     <Avatar
                       alt="Profile"
                       src={item?.pic}
                       sx={{
-                        width: 65,
-                        height: 65,
-                        border: `2px solid ${lightTheme ? "" : "white"}`,
+                        width: 60,
+                        height: 60,
+                        border: `2px solid ${lightTheme ? "#e0e0e0" : "#444"}`,
                       }}
                     />
+                    <div className="flex flex-col overflow-hidden">
+                      <h2
+                        className={`text-base font-semibold truncate ${
+                          lightTheme ? "text-gray-800" : "text-white"
+                        }`}
+                      >
+                        {item.name}
+                      </h2>
+                      <p
+                        className={`text-sm truncate ${
+                          lightTheme ? "text-gray-500" : "text-gray-400"
+                        }`}
+                      >
+                        @{item.username}
+                      </p>
+                    </div>
                   </div>
-
-                  <div className="flex-1 min-w-0">
-                    <h2
-                      className={`text-lg font-semibold text-gray-800 ml-2 truncate ${
-                        lightTheme ? "" : "!text-white"
-                      }`}
-                    >
-                      {item.name}
-                    </h2>
-                    <p
-                      className={`text-sm text-gray-500 truncate ${
-                        lightTheme ? "" : "!text-gray-400"
-                      }`}
-                    >
-                      {item.lastMessage}
-                    </p>
-                  </div>
-                  <span
-                    className={`text-xs text-gray-400 whitespace-nowrap ${
-                      lightTheme ? "" : "!text-gray-500"
-                    }`}
-                  >
-                    {item.time}
-                  </span>
                 </div>
               ))}
             </div>

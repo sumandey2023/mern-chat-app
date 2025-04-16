@@ -14,6 +14,7 @@ cloudinary.config({
 // Login controller
 const loginController = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
+  console.log("run");
 
   if (!email || !password) {
     return res

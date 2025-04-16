@@ -4,6 +4,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
+import api from "../../config/axios";
 
 const Welcome = () => {
   const navigate = useNavigate();
@@ -29,12 +30,9 @@ const Welcome = () => {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const { data } = await axios.get(
-          "http://localhost:5000/user/get-user-details",
-          {
-            withCredentials: true,
-          }
-        );
+        const { data } = await api.get("/user/get-user-details", {
+          withCredentials: true,
+        });
         setUserData(data);
       } catch (error) {
         console.log(error);

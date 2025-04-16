@@ -8,7 +8,7 @@ import axios from "axios";
 import Lottie from "lottie-react";
 import MessageSelf from "./MessageSelf";
 import MessageOther from "./MessageOther";
-
+import api from "../../config/axios";
 
 const AIChat = () => {
   const [userData, setUserData] = useState({});
@@ -28,12 +28,9 @@ const AIChat = () => {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const { data } = await axios.get(
-          "http://localhost:5000/user/get-user-details",
-          {
-            withCredentials: true,
-          }
-        );
+        const { data } = await api.get("/user/get-user-details", {
+          withCredentials: true,
+        });
         setUserData(data);
       } catch (error) {
         console.log(error);
@@ -51,8 +48,8 @@ const AIChat = () => {
     setLoading(true);
 
     try {
-      const { data } = await axios.post(
-        "http://localhost:5000/user/ai",
+      const { data } = await api.post(
+        "/user/ai",
         { prompt: input },
         {
           headers: { "Content-Type": "application/json" },

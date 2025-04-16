@@ -9,6 +9,7 @@ import { Avatar, IconButton } from "@mui/material";
 import { useMediaQuery } from "react-responsive";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import api from "../../config/axios";
 import axios from "axios";
 const ChatArea = () => {
   const isSmallScreen = useMediaQuery({ maxWidth: 1150 });
@@ -19,15 +20,12 @@ const ChatArea = () => {
   useEffect(() => {
     const fetchReceiverData = async () => {
       try {
-        const data = await axios.get(
-          `http://localhost:5000/user/get-chat-user/${id}`,
-          {
-            credentials: "include", // This will include cookies in the request
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const data = await api.get(`/user/get-chat-user/${id}`, {
+          credentials: "include", // This will include cookies in the request
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
         const receivedData = data.data;
         setreceiverData(receivedData);

@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import defaultProfile from "../assets/profile.webp";
 import toast, { Toaster } from "react-hot-toast";
+import api from "../../config/axios";
 
 const Profile = () => {
   const lightTheme = useSelector((state) => state.themeKey);
@@ -20,12 +21,9 @@ const Profile = () => {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const { data } = await axios.get(
-          "http://localhost:5000/user/get-user-details",
-          {
-            withCredentials: true,
-          }
-        );
+        const { data } = await api.get("/user/get-user-details", {
+          withCredentials: true,
+        });
         setUserData(data);
         setProfileData((prev) => ({
           ...prev,
@@ -38,10 +36,13 @@ const Profile = () => {
     getUser();
   }, []);
 
+  const [uploadedImage, setUploadedImage] = useState(null); // NEW
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const imageURL = URL.createObjectURL(file);
+      setUploadedImage(imageURL); // set the uploaded image
       setProfileData({ ...profileData, profilePic: imageURL });
     }
   };
@@ -59,8 +60,8 @@ const Profile = () => {
     try {
       const loadingToast = toast.loading("Logging out...");
 
-      await axios.post(
-        "http://localhost:5000/user/logout",
+      await api.post(
+        "/user/logout",
         {},
         {
           withCredentials: true,
@@ -104,15 +105,6 @@ const Profile = () => {
             //   <ShowProfilePic pic={userData.user.pic} />;
             // }}
           >
-            <Avatar
-              alt="Profile"
-              src={userData.user?.pic || profileData.pic}
-              sx={{
-                width: 96,
-                height: 96,
-                border: `2px solid ${lightTheme ? "gray" : "white"}`,
-              }}
-            />
             <input
               type="file"
               accept="image/*"
@@ -120,6 +112,26 @@ const Profile = () => {
               id="profile-upload"
               onChange={handleImageChange}
             />
+            {/* <Avatar
+              alt="Profile"
+              src={userData.user?.pic || profileData.pic}
+              sx={{
+                width: 96,
+                height: 96,
+                border: `2px solid ${lightTheme ? "gray" : "white"}`,
+              }}
+            /> */}
+
+            <Avatar
+              alt="Profile"
+              src={uploadedImage || userData.user?.pic || defaultProfile}
+              sx={{
+                width: 96,
+                height: 96,
+                border: `2px solid ${lightTheme ? "gray" : "white"}`,
+              }}
+            />
+
             <label
               htmlFor="profile-upload"
               className="absolute bottom-1 right-1 bg-gray-200 p-2 rounded-full cursor-pointer shadow-md"

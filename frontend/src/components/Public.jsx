@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Avatar } from "@mui/material";
+import api from "../../config/axios";
 const Public = () => {
   const lightTheme = useSelector((state) => state.themeKey);
   const navigate = useNavigate();
@@ -13,12 +14,9 @@ const Public = () => {
   useEffect(() => {
     const fetchAllUsers = async () => {
       try {
-        const { data } = await axios.get(
-          "http://localhost:5000/user/fetchAllUsers",
-          {
-            withCredentials: true,
-          }
-        );
+        const { data } = await api.get("/user/fetchAllUsers", {
+          withCredentials: true,
+        });
         setUsers(data);
         console.log("Fetched users:", data);
       } catch (error) {
@@ -59,43 +57,41 @@ const Public = () => {
             {users.map((item, index) => (
               <div
                 key={index}
-                onClick={() => navigate(`/app/chat`)}
-                className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
-                  lightTheme ? "" : "hover:!bg-[#2A2D27]"
+                onClick={() => navigate(`/app/chat/${item._id}`)}
+                className={`flex items-center justify-between gap-4 p-4 rounded-xl cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md hover:scale-[1.02] ${
+                  lightTheme
+                    ? "bg-white hover:bg-gray-100"
+                    : "bg-[#1E1E1E] hover:!bg-[#2A2D27]"
                 }`}
               >
-                <Avatar
-                  alt="Profile"
-                  src={item?.pic}
-                  sx={{
-                    width: 65,
-                    height: 65,
-                    border: `2px solid ${lightTheme ? "white" : "white"}`,
-                  }}
-                />
-                <div className="flex-1 min-w-0">
-                  <h2
-                    className={`text-lg font-semibold text-gray-800 truncate ${
-                      lightTheme ? "" : "!text-white"
-                    }`}
-                  >
-                    {item.name}
-                  </h2>
-                  <p
-                    className={`text-sm text-gray-500 truncate ${
-                      lightTheme ? "" : "!text-gray-400"
-                    }`}
-                  >
-                    {item.lastMessage}
-                  </p>
+                {/* Avatar and Name + Last Message */}
+                <div className="flex items-center gap-4 min-w-0">
+                  <Avatar
+                    alt="Profile"
+                    src={item?.pic}
+                    sx={{
+                      width: 60,
+                      height: 60,
+                      border: `2px solid ${lightTheme ? "#e0e0e0" : "#444"}`,
+                    }}
+                  />
+                  <div className="flex flex-col overflow-hidden">
+                    <h2
+                      className={`text-base font-semibold truncate ${
+                        lightTheme ? "text-gray-800" : "text-white"
+                      }`}
+                    >
+                      {item.name}
+                    </h2>
+                    <p
+                      className={`text-sm truncate ${
+                        lightTheme ? "text-gray-500" : "text-gray-400"
+                      }`}
+                    >
+                      @{item.username}
+                    </p>
+                  </div>
                 </div>
-                <span
-                  className={`text-xs text-gray-400 whitespace-nowrap ${
-                    lightTheme ? "" : "!text-gray-500"
-                  }`}
-                >
-                  {item.time}
-                </span>
               </div>
             ))}
           </div>

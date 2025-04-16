@@ -17,7 +17,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleTheme } from "../Features/theamSlice";
-
+import BASE_URL from "../../config/api";
 const SideNavChatList = () => {
   const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
@@ -38,7 +38,7 @@ const SideNavChatList = () => {
     const fetchUsers = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/user/searchUsers?search=${search}`,
+          `${BASE_URL}/user/searchUsers?search=${search}`,
           {
             credentials: "include", // This will include cookies in the request
             headers: {
@@ -46,6 +46,7 @@ const SideNavChatList = () => {
             },
           }
         );
+
         if (!res.ok) {
           if (res.status === 401) {
             // Handle unauthorized error
@@ -73,6 +74,8 @@ const SideNavChatList = () => {
 
     return () => clearTimeout(debounceTimer);
   }, [search]);
+
+  // Depend on `search` to trigger fetch when it changes
 
   return (
     <>

@@ -1,34 +1,3 @@
-// import React from "react";
-// import MainSection from "./components/MainSection";
-// import Login from "./components/Login";
-// import { Route, Routes } from "react-router-dom";
-// import Welcome from "./components/Welcome";
-// import ChatArea from "./components/ChatArea";
-
-// import CreateGroup from "./components/CreateGroup";
-// import Groups from "./components/Groups";
-// import Chats from "./components/Chats";
-
-// const App = () => {
-//   return (
-//     <>
-//       <Routes>
-//         <Route path="/" element={<Login />} />
-//         <Route path="app" element={<MainSection />}>
-//           <Route path="welcome" element={<Welcome />}></Route>
-//           <Route path="chat" element={<ChatArea />}></Route>
-//           <Route path="groups" element={<Groups />}></Route>
-//           <Route path="chats" element={<Chats />}></Route>
-//           <Route path="create-group" element={<CreateGroup />}></Route>
-//         </Route>
-//       </Routes>
-//       {/* <Login /> */}
-//     </>
-//   );
-// };
-
-// export default App;
-
 import React from "react";
 import { Route, Routes, useLocation, Outlet } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";

@@ -6,6 +6,8 @@ import { ToastContainer, toast } from "react-toastify";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import axios from "axios";
+import api from "../../config/axios";
+import BASE_URL from "../../config/api";
 import "react-toastify/dist/ReactToastify.css";
 
 const Auth = () => {
@@ -82,8 +84,8 @@ const Auth = () => {
         position: "top-right",
         toastId: "signup-toast",
       });
-      const { data } = await axios.post(
-        "http://localhost:5000/user/login", // or /signup
+      const { data } = await api.post(
+        "/user/login", // or /signup
         formData,
         { withCredentials: true }
       );
@@ -119,16 +121,12 @@ const Auth = () => {
         formDataToSend.append("pic", formData.pic); // pic is the image file
       }
 
-      const { data } = await axios.post(
-        "http://localhost:5000/user/signup",
-        formDataToSend,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          withCredentials: true,
-        }
-      );
+      const { data } = await api.post("/user/signup", formDataToSend, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        withCredentials: true,
+      });
 
       localStorage.setItem("token", data.token);
 
@@ -352,7 +350,7 @@ const Auth = () => {
         pauseOnHover
         theme="colored"
       />
-      <h4 class="fixed bottom-2 right-2 text-lg ">made with ❤️ by Suman</h4>
+      <h4 className="fixed bottom-2 right-2 text-lg ">made with ❤️ by Suman</h4>
     </div>
   );
 };

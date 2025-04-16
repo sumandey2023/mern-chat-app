@@ -3,14 +3,7 @@
   font-family: "Signika Negative", sans-serif;
 }
 
-/* body {
-  font-family: "Winky Sans", sans-serif;
-} */
 
-/* body {
-  background-color: #4141ff;
-} */
-/* Hide scrollbar but keep scrolling */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
