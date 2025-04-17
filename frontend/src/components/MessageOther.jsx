@@ -1,25 +1,28 @@
+import { Avatar } from "@mui/material";
 import React from "react";
 import { useSelector } from "react-redux";
 
-const MessageOther = ({ text, avatar }) => {
+const MessageOther = ({ text, avatar, time, pic }) => {
   const lightTheme = useSelector((state) => state.themeKey);
-
-  // Split message by newline character
   const lines = text.split("\n");
 
   return (
-    <div className="flex items-start gap-3 mb-4">
-      {/* Avatar */}
-      <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex justify-center items-center text-white text-base lg:text-lg font-semibold shadow-md">
-        {avatar || "AI"}
-      </div>
+    <div className="flex items-end gap-3 mb-2 pl-2">
+      {/* Avatar - slightly larger now */}
+      <Avatar
+        alt="Profile"
+        src={pic}
+        sx={{
+          width: 65,
+          height: 65,
+          border: `2px solid white`,
+        }}
+      />
 
-      {/* Message Bubble */}
+      {/* Message bubble */}
       <div
-        className={`rounded-2xl px-4 py-3 max-w-[80%] lg:max-w-[65%] shadow-md transition-all duration-300 ${
-          lightTheme
-            ? "bg-gray-100 text-gray-900 hover:shadow-lg"
-            : "bg-[#2A2D27] text-white hover:shadow-lg"
+        className={`px-4 py-2 pb-5 max-w-[75%] rounded-2xl shadow-md relative ${
+          lightTheme ? "bg-gray-100 text-gray-900" : "bg-[#2A2D27] text-white"
         }`}
       >
         {lines.map((line, index) => (
@@ -30,6 +33,11 @@ const MessageOther = ({ text, avatar }) => {
             {line}
           </p>
         ))}
+
+        {/* Timestamp */}
+        <span className="absolute bottom-1 right-2 text-[10px] text-gray-500 dark:text-gray-400">
+          {time}
+        </span>
       </div>
     </div>
   );

@@ -14,7 +14,6 @@ cloudinary.config({
 // Login controller
 const loginController = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  console.log("run");
 
   if (!email || !password) {
     return res
@@ -68,27 +67,7 @@ const signupController = asyncHandler(async (req, res) => {
   const salt = await bcrypt.genSalt(10);
   const hash = await bcrypt.hash(password, salt);
   let newUser;
-  // if (pic == undefined) {
-  //   console.log("undefined run");
 
-  //   newUser = await userModel.create({
-  //     name,
-  //     email,
-  //     username,
-  //     password: hash,
-  //   });
-  // } else {
-  //   console.log("buffer run");
-
-  //   const buffer = req.file.buffer.toString("base64");
-  //   console.log(buffer);
-  //   newUser = await userModel.create({
-  //     name,
-  //     email,
-  //     username,
-  //     password: hash,
-  //   });
-  // }
   try {
     const buffer = req.file.buffer.toString("base64");
     const result = await cloudinary.uploader.upload(

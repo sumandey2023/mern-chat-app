@@ -75,6 +75,10 @@ const SideNavChatList = () => {
     return () => clearTimeout(debounceTimer);
   }, [search]);
 
+  const clearSearch = () => {
+    setSearch(""); // Clear the search state
+    console.log("clicked");
+  };
   // Depend on `search` to trigger fetch when it changes
 
   return (
@@ -179,6 +183,7 @@ const SideNavChatList = () => {
           <input
             type="text"
             placeholder="Search"
+            value={search}
             onChange={(e) => setSearch(e.target.value)}
             className={`w-full px-3 outline-none text-lg ${
               lightTheam ? "text-gray-800" : "text-white placeholder-gray-400"
@@ -193,12 +198,29 @@ const SideNavChatList = () => {
           }`}
         >
           <div className="flex flex-col gap-y-3 px-4 py-3 overflow-y-auto h-full no-scrollbar">
+            {/* {data.length ? (
+              data.map((item, index) => (
+                <ConversationsItem
+                  key={index}
+                  data={item}
+                  lightTheam={lightTheam}
+                  onSelect={clearSearch}
+                />
+              ))
+            ) : (
+              <></>
+            )} */}
+
             {data.length ? (
               data.map((item, index) => (
                 <ConversationsItem
                   key={index}
                   data={item}
                   lightTheam={lightTheam}
+                  onSelect={() => {
+                    clearSearch();
+                    navigate(`chat/${item._id}`);
+                  }} // Add both clearSearch and navigate here
                 />
               ))
             ) : (

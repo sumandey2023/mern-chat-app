@@ -4,7 +4,6 @@ import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import defaultProfile from "../assets/profile.webp";
 import toast, { Toaster } from "react-hot-toast";
 import api from "../../config/axios";

@@ -22,6 +22,9 @@ const iserModel = mongoose.Schema(
     pic: {
       type: String,
     },
+    video: {
+      type: String,
+    },
   },
   {
     timestamps: true,

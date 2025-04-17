@@ -1,14 +1,23 @@
 import React from "react";
 import { useSelector } from "react-redux";
 
-const MessageSelf = ({ text }) => {
+const MessageSelf = ({ text, time }) => {
   const lightTheme = useSelector((state) => state.themeKey);
 
   return (
-    <div className="flex items-start justify-end gap-3 mb-4">
-      {/* Message Bubble */}
-      <div className="rounded-2xl px-4 py-3 max-w-[80%] lg:max-w-[65%] bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md transition-all duration-300 hover:shadow-lg">
-        <p className="text-sm lg:text-base leading-relaxed">{text}</p>
+    <div className="flex justify-end mb-2 pr-2">
+      <div
+        className={`px-4 py-2 pb-5 max-w-[75%] rounded-2xl shadow-md relative ${
+          lightTheme ? "bg-blue-500 text-white" : "bg-blue-600 text-white"
+        }`}
+      >
+        {/* Message text */}
+        <p className="text-sm lg:text-base">{text}</p>
+
+        {/* Time - bottom right corner, spaced from text */}
+        <span className="absolute bottom-1 right-2 text-[10px] text-white/70">
+          {time}
+        </span>
       </div>
     </div>
   );

@@ -1,9 +1,5 @@
 import React from "react";
-import ChatArea from "./ChatArea";
 import SideNavChatList from "./SideNavChatList";
-import Welcome from "./Welcome";
-import CreateGroup from "./CreateGroup";
-import UserGroups from "./Groups";
 import TitleBar from "./TitleBar";
 import { Outlet } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
