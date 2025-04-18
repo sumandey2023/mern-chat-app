@@ -210,6 +210,47 @@ const getChatUser = asyncHandler(async (req, res) => {
     console.log(error);
   }
 });
+
+const addToChatList = asyncHandler(async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const logedInUserId = req.user._id;
+
+    const loggedInUser = await userModel.findById(logedInUserId);
+    const userToAdd = await userModel.findById(userId);
+
+    if (!loggedInUser.chatlist.includes(userId)) {
+      loggedInUser.chatlist.push(userId);
+      await loggedInUser.save();
+    }
+
+    if (!userToAdd.chatlist.includes(logedInUserId)) {
+      userToAdd.chatlist.push(logedInUserId);
+      await userToAdd.save();
+    }
+
+    res.status(200).json({ message: "User added to chat list" });
+  } catch (error) {
+    console.log(error.message);
+  }
+});
+
+const chatlist = asyncHandler(async (req, res) => {
+  try {
+    const logedInUserId = req.user._id;
+
+    const userData = await userModel
+      .findById(logedInUserId)
+      .populate("chatlist")
+      .select("-password");
+    const chatList = userData.chatlist.reverse();
+
+    res.status(200).send(chatList);
+  } catch (error) {
+    res.status(400).json({ message: "Error fetching chat list" });
+  }
+});
+
 module.exports = {
   signupController,
   loginController,
@@ -218,4 +259,6 @@ module.exports = {
   getUserDetails,
   searchUsers,
   getChatUser,
+  addToChatList,
+  chatlist,
 };

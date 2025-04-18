@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const iserModel = mongoose.Schema(
+const userModel = mongoose.Schema(
   {
     name: {
       type: String,
@@ -10,6 +10,12 @@ const iserModel = mongoose.Schema(
       required: true,
       unique: true,
     },
+    chatlist: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "User",
+      default: [],
+    },
+
     email: {
       type: String,
       required: true,
@@ -31,5 +37,5 @@ const iserModel = mongoose.Schema(
   }
 );
 
-const User = mongoose.model("User", iserModel);
+const User = mongoose.model("User", userModel);
 module.exports = User;

@@ -9,15 +9,25 @@ const MessageOther = ({ text, avatar, time, pic }) => {
   return (
     <div className="flex items-end gap-3 mb-2 pl-2">
       {/* Avatar - slightly larger now */}
-      <Avatar
-        alt="Profile"
-        src={pic}
-        sx={{
-          width: 65,
-          height: 65,
-          border: `2px solid white`,
-        }}
-      />
+      {avatar ? (
+        <div
+          className={`w-[40px] h-[40px] lg:w-[50px] lg:h-[50px] rounded-full flex justify-center items-center text-white text-xl lg:text-2xl font-bold ${
+            lightTheme ? "bg-gray-400" : "bg-gray-600"
+          }`}
+        >
+          {avatar}
+        </div>
+      ) : (
+        <Avatar
+          alt="Profile"
+          src={pic}
+          sx={{
+            width: 65,
+            height: 65,
+            border: `2px solid white`,
+          }}
+        />
+      )}
 
       {/* Message bubble */}
       <div

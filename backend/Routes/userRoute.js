@@ -9,6 +9,8 @@ const {
   getUserDetails,
   searchUsers,
   getChatUser,
+  addToChatList,
+  chatlist,
 } = require("../controller/userController");
 const isLoggedIn = require("../middleware/isLoggedIn");
 const { ai } = require("../controller/ai");
@@ -25,5 +27,7 @@ Router.post("/ai", ai);
 Router.get("/searchUsers", isLoggedIn, searchUsers);
 Router.get("/get-chat-user/:id", getChatUser);
 Router.get("/check-auth", checkAuth);
+Router.post("/add-to-chat-list", isLoggedIn, addToChatList);
+Router.get("/chatList", isLoggedIn, chatlist);
 
 module.exports = Router;

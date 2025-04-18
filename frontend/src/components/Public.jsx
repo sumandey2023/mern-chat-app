@@ -24,9 +24,24 @@ const Public = () => {
       }
     };
     fetchAllUsers();
-    console.log(users);
   }, []);
 
+  const addUserToChatLIst = async (userId) => {
+    try {
+      const res = await api.post(
+        "/user/add-to-chat-list",
+        { userId },
+        { withCredentials: true }
+      );
+      if (res.status === 200) {
+        console.log("User added to chat list successfully");
+      } else {
+        console.error("Failed to add user to chat list");
+      }
+    } catch (error) {
+      console.error("Error adding user to chat list:", error);
+    }
+  };
   return (
     <div
       className={`bg-gray-100 h-full lg:block grow py-4 px-3 ${
@@ -57,7 +72,10 @@ const Public = () => {
             {users.map((item, index) => (
               <div
                 key={index}
-                onClick={() => navigate(`/app/chat/${item._id}`)}
+                onClick={() => {
+                  navigate(`/app/chat/${item._id}`);
+                  addUserToChatLIst(item._id);
+                }}
                 className={`flex items-center justify-between gap-4 p-4 rounded-xl cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md hover:scale-[1.02] ${
                   lightTheme
                     ? "bg-white hover:bg-gray-100"
