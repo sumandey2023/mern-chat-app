@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { TextField, Button, InputAdornment, IconButton } from "@mui/material";
+import {
+  TextField,
+  Button,
+  InputAdornment,
+  IconButton,
+  Paper,
+} from "@mui/material";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import AlternateEmailIcon from "@mui/icons-material/AlternateEmail";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
 import defaultProfile from "../assets/profile.webp";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -39,7 +49,7 @@ const Auth = () => {
     confirmPassword: "",
     pic: "",
   });
-  //test
+
   useEffect(() => {
     try {
       const token = localStorage.getItem("token");
@@ -139,19 +149,38 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="rounded-2xl shadow-xl p-8 w-full max-w-sm bg-white transition-all duration-300">
-        <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
-          Welcome to <span className="text-blue-500">Adda</span>
-        </h1>
+    <div className="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-blue-50 to-indigo-100">
+      <Paper
+        elevation={8}
+        className="rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 my-8 bg-white transition-all duration-300"
+        sx={{
+          background: "rgba(255, 255, 255, 0.95)",
+          backdropFilter: "blur(10px)",
+          border: "1px solid rgba(255, 255, 255, 0.3)",
+        }}
+      >
+        <div className="text-center mb-4">
+          <h1 className="text-2xl font-bold mb-1 text-gray-800">
+            Welcome to{" "}
+            <span className="text-blue-600 font-extrabold">Adda</span>
+          </h1>
+          <p className="text-gray-500 text-sm">
+            {isSignUp
+              ? "Create an account to get started"
+              : "Sign in to continue to your account"}
+          </p>
+        </div>
 
         {isSignUp && (
           <div className="flex flex-col items-center mb-4">
             <div className="relative w-24 h-24">
-              <img
-                src={profilePic || defaultProfile}
-                className="w-full h-full rounded-full object-cover border-2 border-gray-300 shadow-md"
-              />
+              <div className="w-full h-full rounded-full overflow-hidden border-4 border-blue-100 shadow-md">
+                <img
+                  src={profilePic || defaultProfile}
+                  className="w-full h-full object-cover"
+                  alt="Profile"
+                />
+              </div>
               <input
                 type="file"
                 accept="image/*"
@@ -161,32 +190,48 @@ const Auth = () => {
               />
               <label
                 htmlFor="profile-upload"
-                className="absolute bottom-0 right-0 bg-gray-200 p-1 rounded-full cursor-pointer hover:scale-110 transition-transform duration-300"
+                className="absolute bottom-0 right-0 bg-blue-500 p-1.5 rounded-full cursor-pointer hover:bg-blue-600 transform hover:scale-110 transition-all duration-300 shadow-sm"
               >
-                <PhotoCameraIcon fontSize="small" className="text-gray-600" />
+                <PhotoCameraIcon fontSize="small" className="text-white" />
               </label>
             </div>
+            <p className="text-gray-500 text-xs mt-1">Add a profile picture</p>
           </div>
         )}
 
-        <div className="flex flex-col gap-4 w-full">
+        <div className="flex flex-col gap-7 w-full">
           {isSignUp && (
             <>
               <TextField
-                label="Name"
+                label="Full Name"
                 variant="outlined"
                 fullWidth
                 required
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
+                size="small"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonOutlineIcon
+                        className="text-gray-500"
+                        fontSize="small"
+                      />
+                    </InputAdornment>
+                  ),
+                }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
+                    borderRadius: "10px",
                     "& fieldset": {
-                      borderColor: "rgba(0, 0, 0, 0.23)",
+                      borderColor: "rgba(0, 0, 0, 0.15)",
                     },
                     "&:hover fieldset": {
-                      borderColor: "#1976d2",
+                      borderColor: "#3b82f6",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#3b82f6",
                     },
                   },
                 }}
@@ -199,13 +244,28 @@ const Auth = () => {
                 name="username"
                 value={formData.username}
                 onChange={handleChange}
+                size="small"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <BadgeOutlinedIcon
+                        className="text-gray-500"
+                        fontSize="small"
+                      />
+                    </InputAdornment>
+                  ),
+                }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
+                    borderRadius: "10px",
                     "& fieldset": {
-                      borderColor: "rgba(0, 0, 0, 0.23)",
+                      borderColor: "rgba(0, 0, 0, 0.15)",
                     },
                     "&:hover fieldset": {
-                      borderColor: "#1976d2",
+                      borderColor: "#3b82f6",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#3b82f6",
                     },
                   },
                 }}
@@ -220,13 +280,28 @@ const Auth = () => {
             name="email"
             value={formData.email}
             onChange={handleChange}
+            size="small"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <AlternateEmailIcon
+                    className="text-gray-500"
+                    fontSize="small"
+                  />
+                </InputAdornment>
+              ),
+            }}
             sx={{
               "& .MuiOutlinedInput-root": {
+                borderRadius: "10px",
                 "& fieldset": {
-                  borderColor: "rgba(0, 0, 0, 0.23)",
+                  borderColor: "rgba(0, 0, 0, 0.15)",
                 },
                 "&:hover fieldset": {
-                  borderColor: "#1976d2",
+                  borderColor: "#3b82f6",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#3b82f6",
                 },
               },
             }}
@@ -240,28 +315,48 @@ const Auth = () => {
             name="password"
             value={formData.password}
             onChange={handleChange}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  borderColor: "rgba(0, 0, 0, 0.23)",
-                },
-                "&:hover fieldset": {
-                  borderColor: "#1976d2",
-                },
-              },
-            }}
+            size="small"
             InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LockOutlinedIcon
+                    className="text-gray-500"
+                    fontSize="small"
+                  />
+                </InputAdornment>
+              ),
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton onClick={togglePasswordVisibility} edge="end">
+                  <IconButton
+                    onClick={togglePasswordVisibility}
+                    edge="end"
+                    size="small"
+                  >
                     {showPassword ? (
-                      <VisibilityOff className="text-gray-600" />
+                      <VisibilityOff
+                        className="text-gray-500"
+                        fontSize="small"
+                      />
                     ) : (
-                      <Visibility className="text-gray-600" />
+                      <Visibility className="text-gray-500" fontSize="small" />
                     )}
                   </IconButton>
                 </InputAdornment>
               ),
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "10px",
+                "& fieldset": {
+                  borderColor: "rgba(0, 0, 0, 0.15)",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#3b82f6",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#3b82f6",
+                },
+              },
             }}
           />
           {isSignUp && (
@@ -274,68 +369,102 @@ const Auth = () => {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": {
-                    borderColor: "rgba(0, 0, 0, 0.23)",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#1976d2",
-                  },
-                },
-              }}
+              size="small"
               InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockOutlinedIcon
+                      className="text-gray-500"
+                      fontSize="small"
+                    />
+                  </InputAdornment>
+                ),
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={toggleConPassVisivility} edge="end">
+                    <IconButton
+                      onClick={toggleConPassVisivility}
+                      edge="end"
+                      size="small"
+                    >
                       {showConPass ? (
-                        <VisibilityOff className="text-gray-600" />
+                        <VisibilityOff
+                          className="text-gray-500"
+                          fontSize="small"
+                        />
                       ) : (
-                        <Visibility className="text-gray-600" />
+                        <Visibility
+                          className="text-gray-500"
+                          fontSize="small"
+                        />
                       )}
                     </IconButton>
                   </InputAdornment>
                 ),
+              }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "10px",
+                  "& fieldset": {
+                    borderColor: "rgba(0, 0, 0, 0.15)",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "#3b82f6",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#3b82f6",
+                  },
+                },
               }}
             />
           )}
         </div>
 
         {!isSignUp && (
-          <p className="text-right text-sm mt-2 text-blue-500 cursor-pointer hover:underline transition-all duration-300">
+          <p className="text-right text-xs mt-2 text-blue-600 cursor-pointer hover:text-blue-800 font-medium transition-all duration-300">
             Forgot Password?
           </p>
         )}
 
-        <div className="mt-6">
+        <div className="mt-4">
           <Button
             variant="contained"
-            color="primary"
             fullWidth
-            className="py-3 text-lg rounded-lg shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
+            className="py-2 rounded-lg"
             sx={{
               textTransform: "none",
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              fontSize: "14px",
+              fontWeight: "600",
+              borderRadius: "10px",
+              boxShadow: "0 4px 6px -1px rgba(59, 130, 246, 0.3)",
+              background: "linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%)",
               "&:hover": {
-                background: "linear-gradient(45deg, #1976D3 30%, #1A8BC3 90%)",
+                background: "linear-gradient(90deg, #2563eb 0%, #4f46e5 100%)",
+                boxShadow: "0 10px 15px -3px rgba(59, 130, 246, 0.4)",
               },
+              transition: "all 0.2s ease",
             }}
             onClick={isSignUp ? signUpHandler : loginHandler}
           >
-            {isSignUp ? "Sign Up" : "Login"}
+            {isSignUp ? "Create Account" : "Sign In"}
           </Button>
         </div>
 
-        <p className="text-center mt-4 text-sm text-gray-600">
+        <div className="flex items-center justify-center my-4">
+          <div className="flex-1 h-px bg-gray-200"></div>
+          <p className="px-3 text-xs text-gray-500">OR</p>
+          <div className="flex-1 h-px bg-gray-200"></div>
+        </div>
+
+        <p className="text-center text-xs text-gray-600">
           {isSignUp ? "Already have an account?" : "Don't have an account?"}
           <span
-            className="text-blue-500 cursor-pointer hover:underline ml-1 transition-all duration-300"
+            className="text-blue-600 font-medium cursor-pointer hover:text-blue-800 ml-1 transition-all duration-300"
             onClick={() => setIsSignUp(!isSignUp)}
           >
-            {isSignUp ? "Login" : "Sign up"}
+            {isSignUp ? "Sign In" : "Create Account"}
           </span>
         </p>
-      </div>
+      </Paper>
 
       {/* Toast Container */}
       <ToastContainer
@@ -350,7 +479,11 @@ const Auth = () => {
         pauseOnHover
         theme="colored"
       />
-      <h4 className="fixed bottom-2 right-2 text-lg ">made with ❤️ by Suman</h4>
+      <div className="fixed bottom-2 right-2">
+        <p className="text-xs font-medium text-gray-600 bg-white bg-opacity-80 px-2 py-1 rounded-full shadow-sm">
+          made with ❤️ by Suman
+        </p>
+      </div>
     </div>
   );
 };

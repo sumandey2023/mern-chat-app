@@ -3,19 +3,29 @@ import { useSelector } from "react-redux";
 
 const MessageSelf = ({ text, time }) => {
   const lightTheme = useSelector((state) => state.themeKey);
+  const lines = text.split("\n");
 
   return (
-    <div className="flex justify-end mb-2 pr-2">
+    <div className="flex justify-end mb-3 pr-2 animate-fadeIn">
       <div
-        className={`px-4 py-2 pb-5 max-w-[75%] rounded-2xl shadow-md relative ${
-          lightTheme ? "bg-blue-500 text-white" : "bg-blue-600 text-white"
-        }`}
+        className={`px-4 py-3 pb-6 min-w-[120px] max-w-[75%] rounded-t-2xl rounded-bl-2xl rounded-br-lg shadow-md relative ${
+          lightTheme
+            ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white"
+            : "bg-gradient-to-br from-blue-600 to-blue-700 text-white"
+        } shadow-lg`}
       >
-        {/* Message text */}
-        <p className="text-sm lg:text-base">{text}</p>
+        {/* Message text with support for line breaks */}
+        {lines.map((line, index) => (
+          <p
+            key={index}
+            className="text-sm lg:text-base leading-relaxed whitespace-pre-line"
+          >
+            {line}
+          </p>
+        ))}
 
-        {/* Time - bottom right corner, spaced from text */}
-        <span className="absolute bottom-1 right-2 text-[10px] text-white/70">
+        {/* Time - improved position and styling */}
+        <span className="absolute bottom-1 right-2.5 text-[10px] font-medium text-white/80">
           {time}
         </span>
       </div>

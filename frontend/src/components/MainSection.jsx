@@ -15,7 +15,7 @@ const MainSection = () => {
       <div
         className={`h-[calc(100vh-5.5vh)] flex ${
           lightTheam ? "bg-[#4141FF]" : "!bg-[#2A2D27]"
-        }`}
+        } transition-all duration-300`}
       >
         {/* Side Nav Bar Chat List */}
         {!isSmallScreen && <SideNavChatList />}

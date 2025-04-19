@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import TelegramIcon from "@mui/icons-material/Telegram";
-import { IconButton } from "@mui/material";
+import SmartToyIcon from "@mui/icons-material/SmartToy";
+import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import { IconButton, Tooltip, Fade } from "@mui/material";
 import { useMediaQuery } from "react-responsive";
 import { useSelector } from "react-redux";
-import axios from "axios";
 import Lottie from "lottie-react";
 import MessageSelf from "./MessageSelf";
 import MessageOther from "./MessageOther";
@@ -18,6 +20,8 @@ const AIChat = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [typingData, setTypingData] = useState(null);
+  const scrollRef = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     fetch("/typing.json")
@@ -77,53 +81,104 @@ const AIChat = () => {
     setMessages([]);
   };
 
+  const focusInput = () => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
   return (
     <div
       className={`grow py-4 px-3 h-full ${
         lightTheme ? "bg-gray-100" : "bg-[#181C14]"
       }`}
+      onClick={focusInput}
     >
       <div
-        className={`flex flex-col h-full rounded-2xl shadow-md overflow-hidden ${
+        className={`flex flex-col h-full rounded-2xl shadow-xl overflow-hidden ${
           lightTheme ? "bg-white" : "bg-[#3C3D37]"
-        }`}
+        } transition-all duration-300`}
       >
-        {/* Header */}
+        {/* Enhanced Header */}
         <div
-          className={`flex items-center px-4 py-3 ${
-            lightTheme ? "bg-gray-50" : "bg-[#2A2D27]"
+          className={`flex items-center px-5 py-4  ${
+            lightTheme
+              ? "bg-white border-b border-gray-200"
+              : "bg-[#2A2D27] border-b border-gray-700"
           }`}
         >
           <div
-            className={`w-[40px] h-[40px] lg:w-[50px] lg:h-[50px] rounded-full flex justify-center items-center text-white text-xl lg:text-2xl font-bold ${
-              lightTheme ? "bg-gray-400" : "bg-gray-600"
-            }`}
+            className={`w-[45px] h-[45px] lg:w-[50px] lg:h-[50px] rounded-full flex justify-center items-center text-white text-xl lg:text-2xl font-bold ${
+              lightTheme ? "bg-blue-500" : "bg-blue-700"
+            } shadow-md`}
           >
-            AI
+            <SmartToyIcon />
           </div>
-          <h1
-            className={`text-base lg:text-lg font-semibold flex-grow ml-3 ${
-              lightTheme ? "text-gray-800" : "text-white"
-            }`}
-          >
-            Adda AI
-          </h1>
-          <DeleteIcon
-            onClick={clearMessages}
-            className={`cursor-pointer transition ${
-              lightTheme
-                ? "text-gray-500 hover:text-red-500"
-                : "text-gray-400 hover:text-red-400"
-            }`}
-          />
+          <div className="ml-3 flex-grow">
+            <h1
+              className={`text-lg lg:text-xl font-semibold ${
+                lightTheme ? "" : "text-white"
+              }`}
+            >
+              Adda AI Assistant
+            </h1>
+            <div
+              className={`text-xs lg:text-sm opacity-80 ${
+                lightTheme ? "text-gray-600" : "text-gray-200"
+              }`}
+            >
+              {loading ? "Typing..." : "Online"}
+            </div>
+          </div>
+          <Tooltip title="Clear conversation" placement="top">
+            <IconButton
+              onClick={clearMessages}
+              className={`hover:bg-white/10 transition`}
+              size={isSmallScreen ? "small" : "medium"}
+            >
+              <DeleteIcon
+                className={
+                  lightTheme
+                    ? "text-gray-500 hover:text-red-400 "
+                    : "text-white hover:text-red-400"
+                }
+              />
+            </IconButton>
+          </Tooltip>
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 p-2 lg:p-4 overflow-y-auto no-scrollbar flex flex-col gap-2">
+        {/* Messages Area with Improved Styling */}
+        <div
+          className={`flex-1 p-3 lg:p-5 overflow-y-auto no-scrollbar flex flex-col gap-3 ${
+            lightTheme ? "bg-gray-50" : "bg-[#313130]"
+          }`}
+        >
+          {/* Welcome Message */}
+          <div className="text-center mb-2">
+            <div
+              className={`text-xs inline-block py-1 px-3 rounded-full ${
+                lightTheme
+                  ? "bg-gray-200 text-gray-600"
+                  : "bg-gray-700 text-gray-300"
+              }`}
+            >
+              Today
+            </div>
+          </div>
+
           <MessageOther
-            text={`Hii ${userData.user?.name} tell me how i can help you`}
+            text={`Hi ${
+              userData.user?.name || "there"
+            }! How can I assist you today?`}
             avatar={"AI"}
           />
+
           {messages.map((msg, index) =>
             msg.sender === "user" ? (
               <MessageSelf key={index} text={msg.text} />
@@ -132,41 +187,56 @@ const AIChat = () => {
             )
           )}
 
-          {/* Typing Animation */}
+          {/* Improved Typing Animation */}
           {loading && typingData && (
             <div className="flex justify-start">
-              <div className="max-w-[60%] px-3 py-2 rounded-2xl ">
-                <Lottie animationData={typingData} className="w-24" loop />
+              <div className={`max-w-[60%] px-3 py-2 rounded-2xl `}>
+                <Lottie animationData={typingData} className="w-16" loop />
               </div>
             </div>
           )}
+          <div ref={scrollRef} />
         </div>
 
-        {/* Footer */}
+        {/* Enhanced Footer */}
         <div
-          className={`p-2 lg:p-3 flex items-center rounded-b-2xl ${
-            lightTheme ? "bg-gray-100" : "bg-[#2A2D27]"
+          className={`p-3 lg:p-4 flex items-center gap-2 ${
+            lightTheme
+              ? "bg-white border-t border-gray-200"
+              : "bg-[#2A2D27] border-t border-gray-700"
           }`}
         >
           <input
+            ref={inputRef}
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type a message..."
+            placeholder="Ask me anything..."
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            className={`flex-1 p-2 rounded-full outline-none text-base lg:text-lg ${
-              lightTheme ? "bg-white" : "bg-[#3C3D37] text-white"
+            className={`flex-1 p-3 rounded-full outline-none text-base lg:text-lg transition-all ${
+              lightTheme
+                ? "bg-gray-100 text-gray-800 focus:bg-gray-200 focus:shadow-inner"
+                : "bg-[#3C3D37] text-white focus:bg-[#444440] focus:shadow-inner"
             }`}
           />
 
-          <IconButton
-            size={isSmallScreen ? "small" : "medium"}
-            onClick={sendMessage}
-          >
-            <TelegramIcon
-              className={lightTheme ? "text-blue-500" : "text-blue-400"}
-            />
-          </IconButton>
+          <Tooltip title="Send message" placement="top">
+            <IconButton
+              size={isSmallScreen ? "small" : "medium"}
+              onClick={sendMessage}
+              // disabled={!input.trim()}
+              className={`${!input.trim() ? "opacity-60" : ""} ${
+                lightTheme
+                  ? "bg-blue-500 hover:bg-blue-600 text-white"
+                  : "bg-blue-600 hover:bg-blue-700 text-white"
+              }`}
+            >
+              <TelegramIcon
+                className={lightTheme ? "text-gray-600" : "text-gray-300"}
+                fontSize={isSmallScreen ? "small" : "medium"}
+              />
+            </IconButton>
+          </Tooltip>
         </div>
       </div>
     </div>

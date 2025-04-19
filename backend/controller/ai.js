@@ -8,7 +8,6 @@ const ai = asyncHandler(async (req, res) => {
     const { prompt } = req.body;
     const result = await model.generateContent(prompt);
     const text = result.response.text();
-
     return res.status(200).json({ response: text });
   } catch (error) {
     return res.status(400).json({ message: "Error processing AI response." });

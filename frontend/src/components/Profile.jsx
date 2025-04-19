@@ -1,7 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { TextField, Button, Avatar, Paper } from "@mui/material";
+import {
+  TextField,
+  Button,
+  Avatar,
+  Paper,
+  Typography,
+  Box,
+  Divider,
+  InputAdornment,
+} from "@mui/material";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import LogoutIcon from "@mui/icons-material/Logout";
+import SaveIcon from "@mui/icons-material/Save";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import EmailIcon from "@mui/icons-material/Email";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import defaultProfile from "../assets/profile.webp";
@@ -16,6 +28,7 @@ const Profile = () => {
     name: "",
     profilePic: defaultProfile,
   });
+  const [uploadedImage, setUploadedImage] = useState(null);
 
   useEffect(() => {
     const getUser = async () => {
@@ -35,13 +48,11 @@ const Profile = () => {
     getUser();
   }, []);
 
-  const [uploadedImage, setUploadedImage] = useState(null); // NEW
-
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const imageURL = URL.createObjectURL(file);
-      setUploadedImage(imageURL); // set the uploaded image
+      setUploadedImage(imageURL);
       setProfileData({ ...profileData, profilePic: imageURL });
     }
   };
@@ -51,7 +62,7 @@ const Profile = () => {
   };
 
   const handleSave = () => {
-    alert("Name Updated: " + profileData.name);
+    toast.success("Profile updated successfully!");
     // Here you can send updated name to backend
   };
 
@@ -85,25 +96,41 @@ const Profile = () => {
 
   return (
     <div
-      className={`grow py-4 px-3 h-full flex justify-center items-center ${
+      className={`grow py-4 px-4 h-full flex justify-center items-center ${
         lightTheme ? "bg-gray-100 text-black" : "bg-[#181C14] text-white"
       }`}
     >
       <Toaster position="top-right" />
       <Paper
-        elevation={6}
-        className={`p-8 rounded-2xl max-w-md w-full text-center ${
+        elevation={8}
+        className={`p-6 rounded-xl max-w-md w-full ${
           lightTheme ? "bg-white text-black" : "!bg-[#2A2A2A] text-white"
         }`}
+        sx={{
+          transition: "all 0.3s ease",
+          "&:hover": {
+            boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+          },
+        }}
       >
+        {/* Header */}
+        <Typography
+          variant="h5"
+          component="h1"
+          gutterBottom
+          sx={{
+            fontWeight: 700,
+            mb: 3,
+            textAlign: "center",
+            color: lightTheme ? "#2C3E50" : "#E0E0E0",
+          }}
+        >
+          My Profile
+        </Typography>
+
         {/* Profile Picture Upload */}
-        <div className="flex flex-col items-center mb-6">
-          <div
-            className="relative w-24 h-24"
-            // onClick={() => {
-            //   <ShowProfilePic pic={userData.user.pic} />;
-            // }}
-          >
+        <Box className="flex flex-col items-center mb-4">
+          <Box className="relative">
             <input
               type="file"
               accept="image/*"
@@ -111,118 +138,258 @@ const Profile = () => {
               id="profile-upload"
               onChange={handleImageChange}
             />
-            {/* <Avatar
-              alt="Profile"
-              src={userData.user?.pic || profileData.pic}
-              sx={{
-                width: 96,
-                height: 96,
-                border: `2px solid ${lightTheme ? "gray" : "white"}`,
-              }}
-            /> */}
-
             <Avatar
               alt="Profile"
               src={uploadedImage || userData.user?.pic || defaultProfile}
               sx={{
                 width: 96,
                 height: 96,
-                border: `2px solid ${lightTheme ? "gray" : "white"}`,
+                border: `3px solid ${lightTheme ? "#3498DB" : "#4DD0E1"}`,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                "&:hover": {
+                  opacity: 0.9,
+                },
               }}
             />
-
             <label
               htmlFor="profile-upload"
-              className="absolute bottom-1 right-1 bg-gray-200 p-2 rounded-full cursor-pointer shadow-md"
+              className="absolute -bottom-2 -right-2 bg-blue-500 p-1.5 rounded-full cursor-pointer shadow-lg hover:bg-blue-600 transition-all duration-200"
             >
-              <PhotoCameraIcon fontSize="small" />
+              <PhotoCameraIcon sx={{ fontSize: "1.1rem", color: "white" }} />
             </label>
-          </div>
-        </div>
+          </Box>
+          <Typography
+            variant="caption"
+            sx={{
+              mt: 1.5,
+              color: lightTheme ? "#666" : "#BBB",
+              display: "block",
+              textAlign: "center",
+            }}
+          >
+            Click to update photo
+          </Typography>
+        </Box>
 
-        {/* Name (Editable) */}
-        <TextField
-          fullWidth
-          label="Name"
-          variant="outlined"
-          margin="normal"
-          value={profileData.name}
-          onChange={handleInputChange}
-          InputProps={{
-            style: {
-              backgroundColor: lightTheme ? "#ffffff" : "#3C3D37",
-              color: lightTheme ? "#000" : "#fff",
-            },
+        <Divider
+          sx={{
+            my: 3,
+            borderColor: lightTheme
+              ? "rgba(0,0,0,0.08)"
+              : "rgba(255,255,255,0.08)",
           }}
         />
 
-        {/* Username (Read-only) */}
-        <TextField
-          fullWidth
-          label="Username"
-          variant="outlined"
-          margin="normal"
-          value={userData.user?.username || ""}
-          InputProps={{
-            readOnly: true,
-            style: {
-              backgroundColor: lightTheme ? "#f0f0f0" : "#2a2a2a",
-              color: "#888",
-            },
-          }}
-        />
+        {/* Form Fields */}
+        <Box sx={{ mb: 3 }}>
+          <Typography
+            variant="subtitle1"
+            sx={{
+              mb: 2,
+              fontWeight: 600,
+              color: lightTheme ? "#34495E" : "#B0BEC5",
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <span style={{ flexGrow: 1 }}>Personal Information</span>
+          </Typography>
 
-        {/* Email (Read-only) */}
-        <TextField
-          fullWidth
-          label="Email"
-          variant="outlined"
-          margin="normal"
-          value={userData.user?.email || ""}
-          InputProps={{
-            readOnly: true,
-            style: {
-              backgroundColor: lightTheme ? "#f0f0f0" : "#2a2a2a",
-              color: "#888",
-            },
+          {/* Name (Editable) */}
+          <TextField
+            fullWidth
+            label="Name"
+            variant="outlined"
+            margin="normal"
+            value={profileData.name}
+            onChange={handleInputChange}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <AccountCircleIcon
+                    sx={{
+                      color: lightTheme ? "#3498DB" : "#4DD0E1",
+                    }}
+                  />
+                </InputAdornment>
+              ),
+              sx: {
+                backgroundColor: lightTheme ? "#ffffff" : "#3C3D37",
+                borderRadius: "10px",
+                "& input": {
+                  padding: "12px 14px",
+                },
+              },
+            }}
+            sx={{
+              mb: 2.5,
+              "& .MuiOutlinedInput-root": {
+                "&:hover fieldset": {
+                  borderColor: lightTheme ? "#3498DB" : "#4DD0E1",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: lightTheme ? "#3498DB" : "#4DD0E1",
+                  borderWidth: "1px",
+                },
+              },
+              "& .MuiInputLabel-root": {
+                transform: "translate(14px, 14px) scale(1)",
+                "&.Mui-focused": {
+                  transform: "translate(14px, -9px) scale(0.75)",
+                  color: lightTheme ? "#3498DB" : "#4DD0E1",
+                },
+                "&.MuiFormLabel-filled": {
+                  transform: "translate(14px, -9px) scale(0.75)",
+                },
+              },
+            }}
+          />
+
+          {/* Username (Read-only) */}
+          <TextField
+            fullWidth
+            label="Username"
+            variant="outlined"
+            margin="normal"
+            value={userData.user?.username || ""}
+            InputProps={{
+              readOnly: true,
+              startAdornment: (
+                <InputAdornment position="start">
+                  <AccountCircleIcon sx={{ color: "#888" }} />
+                </InputAdornment>
+              ),
+              sx: {
+                backgroundColor: lightTheme ? "#f5f7fa" : "#2a2a2a",
+                borderRadius: "10px",
+                "& input": {
+                  padding: "12px 14px",
+                  color: lightTheme ? "#555" : "#AAA",
+                },
+              },
+            }}
+            sx={{
+              mb: 2.5,
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: lightTheme
+                    ? "rgba(0,0,0,0.1)"
+                    : "rgba(255,255,255,0.1)",
+                },
+              },
+              "& .MuiInputLabel-root": {
+                transform: "translate(14px, 14px) scale(1)",
+                "&.Mui-focused": {
+                  transform: "translate(14px, -9px) scale(0.75)",
+                },
+                "&.MuiFormLabel-filled": {
+                  transform: "translate(14px, -9px) scale(0.75)",
+                },
+              },
+            }}
+          />
+
+          {/* Email (Read-only) */}
+          <TextField
+            fullWidth
+            label="Email"
+            variant="outlined"
+            margin="normal"
+            value={userData.user?.email || ""}
+            InputProps={{
+              readOnly: true,
+              startAdornment: (
+                <InputAdornment position="start">
+                  <EmailIcon sx={{ color: "#888" }} />
+                </InputAdornment>
+              ),
+              sx: {
+                backgroundColor: lightTheme ? "#f5f7fa" : "#2a2a2a",
+                borderRadius: "10px",
+                "& input": {
+                  padding: "12px 14px",
+                  color: lightTheme ? "#555" : "#AAA",
+                },
+              },
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: lightTheme
+                    ? "rgba(0,0,0,0.1)"
+                    : "rgba(255,255,255,0.1)",
+                },
+              },
+              "& .MuiInputLabel-root": {
+                transform: "translate(14px, 14px) scale(1)",
+                "&.Mui-focused": {
+                  transform: "translate(14px, -9px) scale(0.75)",
+                },
+                "&.MuiFormLabel-filled": {
+                  transform: "translate(14px, -9px) scale(0.75)",
+                },
+              },
+            }}
+          />
+        </Box>
+
+        <Divider
+          sx={{
+            my: 3,
+            borderColor: lightTheme
+              ? "rgba(0,0,0,0.08)"
+              : "rgba(255,255,255,0.08)",
           }}
         />
 
         {/* Buttons */}
-        <div className="mt-6 flex flex-col gap-4">
+        <Box sx={{ display: "flex", gap: 2 }}>
           <Button
             variant="contained"
-            color="primary"
             fullWidth
+            startIcon={<SaveIcon />}
             sx={{
-              backgroundColor: lightTheme ? "#007bff" : "#0056b3",
+              backgroundColor: lightTheme ? "#3498DB" : "#4DD0E1",
               color: "white",
               textTransform: "none",
+              padding: "10px",
+              borderRadius: "10px",
+              boxShadow: "none",
               "&:hover": {
-                backgroundColor: lightTheme ? "#0056b3" : "#003580",
+                backgroundColor: lightTheme ? "#2980B9" : "#26C6DA",
+                boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
               },
+              transition: "all 0.2s ease",
             }}
             onClick={handleSave}
           >
             Save Changes
           </Button>
+
           <Button
-            variant="contained"
-            color="error"
+            variant="outlined"
             fullWidth
             onClick={handleLogout}
             startIcon={<LogoutIcon />}
             sx={{
-              backgroundColor: lightTheme ? "#dc3545" : "#b71c1c",
+              borderColor: lightTheme ? "#E74C3C" : "#FF5252",
+              color: lightTheme ? "#E74C3C" : "#FF5252",
               textTransform: "none",
+              padding: "10px",
+              borderRadius: "10px",
               "&:hover": {
-                backgroundColor: lightTheme ? "#b71c1c" : "#7f0000",
+                backgroundColor: lightTheme
+                  ? "rgba(231, 76, 60, 0.08)"
+                  : "rgba(255, 82, 82, 0.08)",
+                borderColor: lightTheme ? "#E74C3C" : "#FF5252",
               },
+              transition: "all 0.2s ease",
             }}
           >
             Logout
           </Button>
-        </div>
+        </Box>
       </Paper>
     </div>
   );

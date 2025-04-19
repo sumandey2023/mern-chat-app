@@ -1,290 +1,16 @@
-// import React, { useEffect, useState } from "react";
-// import NightlightIcon from "@mui/icons-material/Nightlight";
-// import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-// import PublicIcon from "@mui/icons-material/Public";
-// import PersonAddIcon from "@mui/icons-material/PersonAdd";
-// import GroupIcon from "@mui/icons-material/Group";
-// import PanoramaFishEyeIcon from "@mui/icons-material/PanoramaFishEye";
-// import VideocamIcon from "@mui/icons-material/Videocam";
-// import SettingsIcon from "@mui/icons-material/Settings";
-// import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-// import ChatIcon from "@mui/icons-material/Chat";
-// import SearchIcon from "@mui/icons-material/Search";
-// import SunnyIcon from "@mui/icons-material/Sunny";
-// import { IconButton } from "@mui/material";
-// import ConversationsItem from "./ConversationItem";
-// import { useNavigate, useLocation } from "react-router-dom";
-// import { useMediaQuery } from "react-responsive";
-// import { useDispatch, useSelector } from "react-redux";
-// import { toggleTheme } from "../Features/theamSlice";
-// import BASE_URL from "../../config/api";
-// import api from "../../config/axios";
-// const SideNavChatList = () => {
-//   const [data, setData] = useState([]);
-//   const [search, setSearch] = useState("");
-//   const navigate = useNavigate();
-//   const location = useLocation();
-//   const dispatch = useDispatch();
-//   const lightTheam = useSelector((state) => state.themeKey);
-//   const isSmallScreen = useMediaQuery({ maxWidth: 1150 });
-//   const isChatRoute = location.pathname.includes("/chat");
-//   const isCreateGroupRoute = location.pathname.includes("/create-group");
-//   const [chatList, setChatList] = useState([]);
-
-//   // On mobile, if we're in a chat or create-group, don't show the chat list
-//   if (isSmallScreen && (isChatRoute || isCreateGroupRoute)) {
-//     return null;
-//   }
-//   useEffect(() => {
-//     const fetchChatList = async () => {
-//       try {
-//         const { data } = await api.get("/user/chatList", {
-//           withCredentials: true,
-//         });
-//         setChatList(data);
-//       } catch (error) {
-//         console.error("Error fetching user data:", error);
-//       }
-//     };
-//     fetchChatList();
-//   }, []);
-
-//   useEffect(() => {
-//     const fetchUsers = async () => {
-//       try {
-//         const res = await fetch(
-//           `${BASE_URL}/user/searchUsers?search=${search}`,
-//           {
-//             credentials: "include", // This will include cookies in the request
-//             headers: {
-//               "Content-Type": "application/json",
-//             },
-//           }
-//         );
-
-//         if (!res.ok) {
-//           if (res.status === 401) {
-//             // Handle unauthorized error
-//             console.error("User is not authenticated");
-//             setData([]);
-//             return;
-//           }
-//           throw new Error("Failed to fetch users");
-//         }
-//         const result = await res.json();
-//         setData(result);
-//       } catch (error) {
-//         console.error("Failed to fetch users:", error);
-//         setData([]);
-//       }
-//     };
-
-//     const debounceTimer = setTimeout(() => {
-//       if (search.trim() !== "") {
-//         fetchUsers();
-//       } else {
-//         setData([]);
-//       }
-//     }, 300);
-
-//     return () => clearTimeout(debounceTimer);
-//   }, [search]);
-
-//   const clearSearch = () => {
-//     setSearch(""); // Clear the search state
-//   };
-
-//   const addUserToChatLIst = async (userId) => {
-//     try {
-//       const res = await api.post(
-//         "/user/add-to-chat-list",
-//         { userId },
-//         { withCredentials: true }
-//       );
-//       if (res.status === 200) {
-//         console.log("User added to chat list successfully");
-//       } else {
-//         console.error("Failed to add user to chat list");
-//       }
-//     } catch (error) {
-//       console.error("Error adding user to chat list:", error);
-//     }
-//   };
-
-//   return (
-//     <>
-//       <div
-//         className={`w-[65px] flex flex-col justify-between py-5 shadow-lg ${
-//           lightTheam ? "bg-[#4141FF]" : "!bg-[#2A2D27]"
-//         }`}
-//       >
-//         {/* side nav bar */}
-//         {/* Top Section - Navigation Icons */}
-//         <div className="flex flex-col items-center space-y-6">
-//           <IconButton
-//             className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110"
-//             onClick={() => {
-//               dispatch(toggleTheme());
-//             }}
-//           >
-//             {lightTheam ? (
-//               <NightlightIcon className="text-white text-3xl" />
-//             ) : (
-//               <SunnyIcon className="text-white text-3xl" />
-//             )}
-//           </IconButton>
-
-//           <IconButton
-//             className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110"
-//             onClick={() => {
-//               navigate("chats");
-//             }}
-//           >
-//             <ChatIcon className="text-white text-3xl" />
-//           </IconButton>
-
-//           <IconButton
-//             className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110"
-//             onClick={() => {
-//               navigate("groups");
-//             }}
-//           >
-//             <GroupIcon className="text-white text-3xl" />
-//           </IconButton>
-//           <IconButton
-//             className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110"
-//             onClick={() => {
-//               navigate("create-group");
-//             }}
-//           >
-//             <AddCircleOutlineIcon className="text-white text-3xl" />
-//           </IconButton>
-//           <IconButton
-//             className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110"
-//             onClick={() => {
-//               navigate("ai-chat");
-//             }}
-//           >
-//             <PanoramaFishEyeIcon className="text-white text-3xl" />
-//           </IconButton>
-//           <IconButton className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110">
-//             <VideocamIcon className="text-white text-3xl" />
-//           </IconButton>
-//         </div>
-
-//         {/* Bottom Section - Settings & Profile */}
-//         <div className="flex flex-col items-center space-y-6 pb-3">
-//           <IconButton
-//             className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110"
-//             onClick={() => {
-//               navigate("public");
-//             }}
-//           >
-//             <PublicIcon className="text-white text-3xl" />
-//           </IconButton>
-//           <IconButton
-//             className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110"
-//             onClick={() => {
-//               navigate("profile");
-//             }}
-//           >
-//             <AccountCircleIcon className="text-white text-3xl" />
-//           </IconButton>
-//         </div>
-//       </div>
-
-//       {/* Search Bar & Chat List */}
-//       <div
-//         className={`w-full rounded-tl-2xl px-4 pt-4 lg:w-[30vw] ${
-//           lightTheam ? "bg-gray-100" : "!bg-[#181C14]"
-//         }`}
-//       >
-//         {/* Search Bar */}
-//         <div
-//           className={`flex items-center rounded-full shadow-md px-4 py-2 transition-all duration-300 ${
-//             lightTheam
-//               ? "bg-white hover:shadow-lg"
-//               : "bg-[#2A2D27] hover:shadow-lg border border-gray-700"
-//           }`}
-//         >
-//           <SearchIcon
-//             className={lightTheam ? "text-gray-500" : "text-gray-400"}
-//           />
-//           <input
-//             type="text"
-//             placeholder="Search"
-//             value={search}
-//             onChange={(e) => setSearch(e.target.value)}
-//             className={`w-full px-3 outline-none text-lg ${
-//               lightTheam ? "text-gray-800" : "text-white placeholder-gray-400"
-//             }`}
-//           />
-//         </div>
-
-//         {/* search users */}
-//         <div
-//           className={`mt-4 rounded-2xl shadow-lg h-[calc(100%-60px)] max-h-[82vh] overflow-hidden ${
-//             lightTheam ? "bg-white" : "!bg-[#3C3D37]"
-//           }`}
-//         >
-//           <div className="flex flex-col gap-y-3 px-4 py-3 overflow-y-auto h-full no-scrollbar">
-//             {data.length ? (
-//               data.map((item, index) => (
-//                 <ConversationsItem
-//                   key={index}
-//                   data={item}
-//                   lightTheam={lightTheam}
-//                   onSelect={() => {
-//                     clearSearch();
-//                     navigate(`chat/${item._id}`);
-//                     addUserToChatLIst(item._id);
-//                     // Refresh chat list after adding user
-//                   }}
-//                 />
-//               ))
-//             ) : (
-//               <>
-//                 {chatList.length > 0 ? (
-//                   chatList.map((item, index) => (
-//                     <ConversationsItem
-//                       key={index}
-//                       data={item}
-//                       lightTheam={lightTheam}
-//                       onSelect={() => {
-//                         navigate(`chat/${item._id}`);
-//                       }}
-//                     />
-//                   ))
-//                 ) : (
-//                   <div className="text-center text-gray-500">
-//                     No chats available
-//                   </div>
-//                 )}
-//               </>
-//             )}
-//           </div>
-//         </div>
-//       </div>
-//     </>
-//   );
-// };
-
-// export default SideNavChatList;
-
 import React, { useEffect, useState } from "react";
 import NightlightIcon from "@mui/icons-material/Nightlight";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import PublicIcon from "@mui/icons-material/Public";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import GroupIcon from "@mui/icons-material/Group";
 import PanoramaFishEyeIcon from "@mui/icons-material/PanoramaFishEye";
 import VideocamIcon from "@mui/icons-material/Videocam";
-import SettingsIcon from "@mui/icons-material/Settings";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ChatIcon from "@mui/icons-material/Chat";
 import SearchIcon from "@mui/icons-material/Search";
 import SunnyIcon from "@mui/icons-material/Sunny";
-import { IconButton } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import { IconButton, Tooltip, Badge, Avatar } from "@mui/material";
 import ConversationsItem from "./ConversationItem";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
@@ -292,17 +18,19 @@ import { useDispatch, useSelector } from "react-redux";
 import { toggleTheme } from "../Features/theamSlice";
 import BASE_URL from "../../config/api";
 import api from "../../config/axios";
+
 const SideNavChatList = () => {
   const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const lightTheam = useSelector((state) => state.themeKey);
+  const lightTheme = useSelector((state) => state.themeKey);
   const isSmallScreen = useMediaQuery({ maxWidth: 1150 });
   const isChatRoute = location.pathname.includes("/chat");
   const isCreateGroupRoute = location.pathname.includes("/create-group");
   const [chatList, setChatList] = useState([]);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   // On mobile, if we're in a chat or create-group, don't show the chat list
   if (isSmallScreen && (isChatRoute || isCreateGroupRoute)) {
@@ -330,7 +58,7 @@ const SideNavChatList = () => {
         const res = await fetch(
           `${BASE_URL}/user/searchUsers?search=${search}`,
           {
-            credentials: "include", // This will include cookies in the request
+            credentials: "include",
             headers: {
               "Content-Type": "application/json",
             },
@@ -339,7 +67,6 @@ const SideNavChatList = () => {
 
         if (!res.ok) {
           if (res.status === 401) {
-            // Handle unauthorized error
             console.error("User is not authenticated");
             setData([]);
             return;
@@ -366,10 +93,10 @@ const SideNavChatList = () => {
   }, [search]);
 
   const clearSearch = () => {
-    setSearch(""); // Clear the search state
+    setSearch("");
   };
 
-  const addUserToChatLIst = async (userId) => {
+  const addUserToChatList = async (userId) => {
     try {
       const res = await api.post(
         "/user/add-to-chat-list",
@@ -386,154 +113,279 @@ const SideNavChatList = () => {
     }
   };
 
+  // Navigation items for cleaner rendering
+  const navigationItems = [
+    {
+      icon: <ChatIcon className="text-white" />,
+      label: "Chats",
+      action: () => navigate("chats"),
+    },
+    {
+      icon: <GroupIcon className="text-white" />,
+      label: "Groups",
+      action: () => navigate("groups"),
+    },
+    {
+      icon: <AddCircleOutlineIcon className="text-white" />,
+      label: "Create Group",
+      action: () => navigate("create-group"),
+    },
+    {
+      icon: <PanoramaFishEyeIcon className="text-white" />,
+      label: "AI Chat",
+      action: () => navigate("ai-chat"),
+    },
+    {
+      icon: <VideocamIcon className="text-white" />,
+      label: "Video",
+      action: () => {},
+      badge: 2, // Example badge count
+    },
+  ];
+
+  const bottomNavigationItems = [
+    {
+      icon: <PublicIcon className="text-white" />,
+      label: "Public",
+      action: () => navigate("public"),
+    },
+    {
+      icon: <AccountCircleIcon className="text-white" />,
+      label: "Profile",
+      action: () => navigate("profile"),
+    },
+  ];
+
   return (
     <>
+      {/* Side Navigation Bar */}
       <div
-        className={`w-[65px] flex flex-col justify-between py-5 shadow-lg ${
-          lightTheam ? "bg-[#4141FF]" : "!bg-[#2A2D27]"
-        }`}
+        className={`w-[70px] flex flex-col justify-between py-6 shadow-xl ${
+          lightTheme ? "bg-[#4141FF]" : "!bg-[#2A2D27]"
+        } transition-all duration-300`}
       >
-        {/* side nav bar */}
-        {/* Top Section - Navigation Icons */}
-        <div className="flex flex-col items-center space-y-6">
-          <IconButton
-            className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110"
-            onClick={() => {
-              dispatch(toggleTheme());
-            }}
+        {/* Theme Toggle Button */}
+        <div className="flex flex-col items-center">
+          <Tooltip
+            title={lightTheme ? "Dark Mode" : "Light Mode"}
+            placement="right"
           >
-            {lightTheam ? (
-              <NightlightIcon className="text-white text-3xl" />
-            ) : (
-              <SunnyIcon className="text-white text-3xl" />
-            )}
-          </IconButton>
+            <IconButton
+              className="hover:bg-white/20 p-2 transition-all duration-300 hover:scale-110 mb-8"
+              onClick={() => dispatch(toggleTheme())}
+            >
+              {lightTheme ? (
+                <NightlightIcon className="text-white text-3xl" />
+              ) : (
+                <SunnyIcon className="text-white text-3xl" />
+              )}
+            </IconButton>
+          </Tooltip>
 
-          <IconButton
-            className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110"
-            onClick={() => {
-              navigate("chats");
-            }}
-          >
-            <ChatIcon className="text-white text-3xl" />
-          </IconButton>
-
-          <IconButton
-            className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110"
-            onClick={() => {
-              navigate("groups");
-            }}
-          >
-            <GroupIcon className="text-white text-3xl" />
-          </IconButton>
-          <IconButton
-            className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110"
-            onClick={() => {
-              navigate("create-group");
-            }}
-          >
-            <AddCircleOutlineIcon className="text-white text-3xl" />
-          </IconButton>
-          <IconButton
-            className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110"
-            onClick={() => {
-              navigate("ai-chat");
-            }}
-          >
-            <PanoramaFishEyeIcon className="text-white text-3xl" />
-          </IconButton>
-          <IconButton className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110">
-            <VideocamIcon className="text-white text-3xl" />
-          </IconButton>
+          {/* Top Navigation Icons */}
+          <div className="flex flex-col items-center space-y-6">
+            {navigationItems.map((item, index) => (
+              <Tooltip key={index} title={item.label} placement="right">
+                <IconButton
+                  className={`hover:bg-white/20 p-2 transition-all duration-300 hover:scale-110 ${
+                    location.pathname.includes(item.label.toLowerCase())
+                      ? "bg-white/30 shadow-md"
+                      : ""
+                  }`}
+                  onClick={item.action}
+                >
+                  {item.badge ? (
+                    <Badge badgeContent={item.badge} color="error">
+                      {item.icon}
+                    </Badge>
+                  ) : (
+                    item.icon
+                  )}
+                </IconButton>
+              </Tooltip>
+            ))}
+          </div>
         </div>
 
-        {/* Bottom Section - Settings & Profile */}
+        {/* Bottom Navigation Icons */}
         <div className="flex flex-col items-center space-y-6 pb-3">
-          <IconButton
-            className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110"
-            onClick={() => {
-              navigate("public");
-            }}
-          >
-            <PublicIcon className="text-white text-3xl" />
-          </IconButton>
-          <IconButton
-            className="hover:bg-white/10 p-2 transition-all duration-300 hover:scale-110"
-            onClick={() => {
-              navigate("profile");
-            }}
-          >
-            <AccountCircleIcon className="text-white text-3xl" />
-          </IconButton>
+          {bottomNavigationItems.map((item, index) => (
+            <Tooltip key={index} title={item.label} placement="right">
+              <IconButton
+                className={`hover:bg-white/20 p-2 transition-all duration-300 hover:scale-110 ${
+                  location.pathname.includes(item.label.toLowerCase())
+                    ? "bg-white/30 shadow-md"
+                    : ""
+                }`}
+                onClick={item.action}
+              >
+                {item.icon}
+              </IconButton>
+            </Tooltip>
+          ))}
         </div>
       </div>
 
-      {/* Search Bar & Chat List */}
+      {/* Chat List and Search Panel */}
       <div
-        className={`w-full rounded-tl-2xl px-4 pt-4 lg:w-[30vw] ${
-          lightTheam ? "bg-gray-100" : "!bg-[#181C14]"
-        }`}
+        className={`w-full rounded-tl-3xl px-5 pt-5 lg:w-[30vw] ${
+          lightTheme ? "bg-gray-100" : "!bg-[#181C14]"
+        } transition-all duration-300`}
       >
-        {/* Search Bar */}
+        {/* Search Header with Title */}
+        <div className="flex justify-between items-center mb-4">
+          <h2
+            className={`text-xl font-semibold ${
+              lightTheme ? "text-gray-800" : "text-gray-200"
+            }`}
+          >
+            Messages
+          </h2>
+          <span
+            className={`text-sm ${
+              lightTheme ? "text-blue-600" : "text-blue-400"
+            }`}
+          >
+            {chatList.length}{" "}
+            {chatList.length === 1 ? "conversation" : "conversations"}
+          </span>
+        </div>
+
+        {/* Enhanced Search Bar */}
         <div
-          className={`flex items-center rounded-full shadow-md px-4 py-2 transition-all duration-300 ${
-            lightTheam
-              ? "bg-white hover:shadow-lg"
-              : "bg-[#2A2D27] hover:shadow-lg border border-gray-700"
+          className={`flex items-center rounded-full shadow-md px-4 py-3 transition-all duration-300 ${
+            isSearchFocused ? "ring-2 ring-opacity-50" : ""
+          } ${
+            lightTheme
+              ? `bg-white hover:shadow-lg ${
+                  isSearchFocused ? "ring-blue-400" : ""
+                }`
+              : `bg-[#2A2D27] hover:shadow-lg border border-gray-700 ${
+                  isSearchFocused ? "ring-blue-600" : ""
+                }`
           }`}
         >
           <SearchIcon
-            className={lightTheam ? "text-gray-500" : "text-gray-400"}
+            className={`${lightTheme ? "text-gray-500" : "text-gray-400"} ${
+              isSearchFocused
+                ? lightTheme
+                  ? "text-blue-500"
+                  : "text-blue-400"
+                : ""
+            }`}
           />
           <input
             type="text"
-            placeholder="Search"
+            placeholder="Search contacts"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
             className={`w-full px-3 outline-none text-lg ${
-              lightTheam ? "text-gray-800" : "text-white placeholder-gray-400"
-            }`}
+              lightTheme ? "text-gray-800" : "text-white placeholder-gray-400"
+            } bg-transparent`}
           />
+          {search && (
+            <IconButton size="small" onClick={clearSearch}>
+              <CloseIcon
+                className={lightTheme ? "text-gray-500" : "text-gray-400"}
+                fontSize="small"
+              />
+            </IconButton>
+          )}
         </div>
 
-        {/* search users */}
+        {/* Chat List Container */}
         <div
-          className={`mt-4 rounded-2xl shadow-lg h-[calc(100%-60px)] max-h-[82vh] overflow-hidden ${
-            lightTheam ? "bg-white" : "!bg-[#3C3D37]"
-          }`}
+          className={`mt-4 rounded-2xl shadow-lg h-[calc(100%-130px)] max-h-[82vh] overflow-hidden ${
+            lightTheme ? "bg-white" : "!bg-[#3C3D37]"
+          } transition-all duration-300`}
         >
-          <div className="flex flex-col gap-y-3 px-4 py-3 overflow-y-auto h-full no-scrollbar">
+          {/* Search Results or Chat List */}
+          <div className="flex flex-col gap-y-3 px-4 py-4 overflow-y-auto h-full no-scrollbar">
+            {data.length > 0 && (
+              <div
+                className={`px-2 py-1 mb-2 text-sm font-medium ${
+                  lightTheme ? "text-gray-500" : "text-gray-300"
+                }`}
+              >
+                Search Results ({data.length})
+              </div>
+            )}
+
             {data.length ? (
               data.map((item, index) => (
                 <ConversationsItem
                   key={index}
                   data={item}
-                  lightTheam={lightTheam}
+                  lightTheam={lightTheme}
                   onSelect={async () => {
                     clearSearch();
                     navigate(`chat/${item._id}`);
-                    await addUserToChatLIst(item._id);
+                    await addUserToChatList(item._id);
                     fetchChatList();
                   }}
                 />
               ))
             ) : (
               <>
-                {chatList.length > 0 ? (
-                  chatList.map((item, index) => (
-                    <ConversationsItem
-                      key={index}
-                      data={item}
-                      lightTheam={lightTheam}
-                      onSelect={() => {
-                        navigate(`chat/${item._id}`);
-                      }}
-                    />
-                  ))
-                ) : (
-                  <div className="text-center text-gray-500">
-                    No chats available
+                {search.trim() !== "" && (
+                  <div className="text-center py-4 text-gray-500">
+                    No users match your search
                   </div>
+                )}
+
+                {search.trim() === "" && (
+                  <>
+                    {chatList.length > 0 ? (
+                      <>
+                        <div
+                          className={`px-2 py-1 mb-2 text-sm font-medium ${
+                            lightTheme ? "text-gray-500" : "text-gray-300"
+                          }`}
+                        >
+                          Recent Chats
+                        </div>
+                        {chatList.map((item, index) => (
+                          <ConversationsItem
+                            key={index}
+                            data={item}
+                            lightTheam={lightTheme}
+                            onSelect={() => {
+                              navigate(`chat/${item._id}`);
+                            }}
+                          />
+                        ))}
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full py-10 text-center">
+                        <Avatar
+                          className={`mb-4 ${
+                            lightTheme
+                              ? "bg-blue-100 text-blue-500"
+                              : "bg-gray-700 text-gray-300"
+                          }`}
+                          sx={{ width: 60, height: 60 }}
+                        >
+                          <ChatIcon fontSize="large" />
+                        </Avatar>
+                        <div
+                          className={`text-lg font-medium ${
+                            lightTheme ? "text-gray-700" : "text-gray-300"
+                          }`}
+                        >
+                          No chats available
+                        </div>
+                        <p
+                          className={`text-sm mt-2 ${
+                            lightTheme ? "text-gray-500" : "text-gray-400"
+                          }`}
+                        >
+                          Search for users to start a conversation
+                        </p>
+                      </div>
+                    )}
+                  </>
                 )}
               </>
             )}

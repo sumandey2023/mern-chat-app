@@ -24,46 +24,48 @@ const App = () => {
     location.pathname === "/app" || location.pathname === "/app/welcome";
 
   return (
-    <Routes>
-      <Route path="/" element={<Auth />} />
+    <div className="flex flex-col h-screen w-screen overflow-hidden">
+      <Routes>
+        <Route path="/" element={<Auth />} />
 
-      {/* Main app routes */}
-      <Route
-        path="app"
-        element={
-          isSmallScreen && isAppRootOrWelcomeRoute ? (
-            <ProtectedRoute>
-              <>
-                <TitleBar />
-                <div
-                  className={`h-[calc(100vh-5.5vh)] flex bg-[#4141FF] ${
-                    lightTheme ? "" : "!bg-[#2A2D27]"
-                  } `}
-                >
-                  <SideNavChatList />
-                  <div className="flex-1 overflow-hidden">
-                    <Outlet />
+        {/* Main app routes */}
+        <Route
+          path="app"
+          element={
+            isSmallScreen && isAppRootOrWelcomeRoute ? (
+              <ProtectedRoute>
+                <div className="flex flex-col h-screen w-full">
+                  <TitleBar />
+                  <div
+                    className={`flex flex-grow ${
+                      lightTheme ? "bg-[#4141FF]" : "bg-[#2A2D27]"
+                    }`}
+                  >
+                    <SideNavChatList />
+                    <div className="flex-1 overflow-hidden">
+                      <Outlet />
+                    </div>
                   </div>
                 </div>
-              </>
-            </ProtectedRoute>
-          ) : (
-            <ProtectedRoute>
-              <MainSection />
-            </ProtectedRoute>
-          )
-        }
-      >
-        <Route path="welcome" element={<Welcome />} />
-        <Route path="chat/:id" element={<ChatArea />} />
-        <Route path="groups" element={<Groups />} />
-        <Route path="chats" element={<Chats />} />
-        <Route path="create-group" element={<CreateGroup />} />
-        <Route path="ai-chat" element={<AIChat />} />
-        <Route path="profile" element={<Profile />} />
-        <Route path="public" element={<Public />} />
-      </Route>
-    </Routes>
+              </ProtectedRoute>
+            ) : (
+              <ProtectedRoute>
+                <MainSection />
+              </ProtectedRoute>
+            )
+          }
+        >
+          <Route path="welcome" element={<Welcome />} />
+          <Route path="chat/:id" element={<ChatArea />} />
+          <Route path="groups" element={<Groups />} />
+          <Route path="chats" element={<Chats />} />
+          <Route path="create-group" element={<CreateGroup />} />
+          <Route path="ai-chat" element={<AIChat />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="public" element={<Public />} />
+        </Route>
+      </Routes>
+    </div>
   );
 };
 
