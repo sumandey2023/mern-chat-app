@@ -48,13 +48,11 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Something broke!" });
 });
 
-// Socket.io connection handling
 const onlineUsers = new Map();
 
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
 
-  // Handle user joining with their user ID
   socket.on("addUser", (userId) => {
     onlineUsers.set(userId, socket.id);
     io.emit("getUsers", Array.from(onlineUsers.keys()));
