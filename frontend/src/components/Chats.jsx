@@ -7,21 +7,8 @@ import Lottie from "lottie-react";
 import api from "../../config/axios";
 import { Avatar } from "@mui/material";
 
-const dummyData = [
-  { name: "John Doe", lastMessage: "Hey! How are you?", time: "10:30 AM" },
-  { name: "Jane Smith", lastMessage: "Let's catch up later!", time: "9:15 AM" },
-  { name: "Alice Johnson", lastMessage: "Meeting at 3 PM?", time: "Yesterday" },
-  { name: "Bob Brown", lastMessage: "Sounds great!", time: "Monday" },
-  { name: "Charlie Davis", lastMessage: "See you soon!", time: "Sunday" },
-  { name: "John Doe", lastMessage: "Hey! How are you?", time: "10:30 AM" },
-  { name: "Jane Smith", lastMessage: "Let's catch up later!", time: "9:15 AM" },
-  { name: "Alice Johnson", lastMessage: "Meeting at 3 PM?", time: "Yesterday" },
-  { name: "Bob Brown", lastMessage: "Sounds great!", time: "Monday" },
-  { name: "Charlie Davis", lastMessage: "See you soon!", time: "Sunday" },
-];
-
-const Chats = ({ data = dummyData }) => {
-  const [users, setUsers] = useState([]);
+const Chats = () => {
+  const [chatList, setChatList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [spinnerData, setSpinnerData] = useState(null);
   const lightTheme = useSelector((state) => state.themeKey);
@@ -41,27 +28,18 @@ const Chats = ({ data = dummyData }) => {
   }, []);
 
   useEffect(() => {
-    const fetchAllUsers = async () => {
+    const fetchChatList = async () => {
       try {
-        setLoading(true);
-        const { data } = await api.get("/user/fetchAllUsers", {
+        const { data } = await api.get("/user/chatList", {
           withCredentials: true,
         });
-        setUsers(data);
+        setChatList(data);
       } catch (error) {
-        console.error("Error fetching users:", error);
-      } finally {
-        setLoading(false);
+        console.error("Error fetching user data:", error);
       }
     };
-
-    fetchAllUsers();
+    fetchChatList();
   }, []);
-
-  useEffect(() => {
-    console.log("Users state updated:", users);
-  }, [users]);
-
   return (
     <div
       className={`bg-gray-100 lg:block grow h-full py-4 px-3 ${
@@ -82,7 +60,7 @@ const Chats = ({ data = dummyData }) => {
           Chats
         </h1>
 
-        {users.length ? (
+        {chatList.length ? (
           <div
             className={`rounded-2xl flex-1 overflow-y-auto no-scrollbar transition-colors duration-300 ${
               lightTheme ? "bg-white" : "bg-[#3C3D37]"
@@ -90,10 +68,10 @@ const Chats = ({ data = dummyData }) => {
             style={{ maxHeight: "78vh" }}
           >
             <div className="flex flex-col gap-y-3 px-4 py-3">
-              {users.map((item, index) => (
+              {chatList.map((item, index) => (
                 <div
                   key={index}
-                  onClick={() => navigate(`/app/chat`)}
+                  onClick={() => navigate(`/app/chat/${item._id}`)}
                   className={`flex items-center justify-between gap-4 p-4 rounded-xl cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md hover:scale-[1.02] ${
                     lightTheme
                       ? "bg-white hover:bg-gray-100"

@@ -6,11 +6,13 @@ import MicIcon from "@mui/icons-material/Mic";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import TelegramIcon from "@mui/icons-material/Telegram";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
-import { Avatar, IconButton, Tooltip } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import { Avatar, IconButton, Tooltip, ClickAwayListener } from "@mui/material";
 import { useMediaQuery } from "react-responsive";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import api from "../../config/axios";
+import EmojiPicker from "emoji-picker-react";
 
 const ChatArea = () => {
   const isSmallScreen = useMediaQuery({ maxWidth: 1150 });
@@ -20,8 +22,10 @@ const ChatArea = () => {
   const [loggedInUser, setLoggedInUser] = useState({});
   const [messageToBeSend, setMessageToBeSend] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
+  const emojiPickerRef = useRef(null);
   const { id } = useParams();
 
   useEffect(() => {
@@ -101,6 +105,7 @@ const ChatArea = () => {
 
       setMessages((prev) => [...prev, data]);
       setMessageToBeSend("");
+      setShowEmojiPicker(false);
       setTimeout(() => {
         const chatContainer = document.querySelector(".chat-container");
         if (chatContainer) {
@@ -117,13 +122,102 @@ const ChatArea = () => {
     setIsTyping(e.target.value.length > 0);
   };
 
-  const formatDate = (dateString) => {
+  const handleEmojiClick = (emojiData) => {
+    const emoji = emojiData.emoji;
+    const cursorPosition = inputRef.current.selectionStart;
+    const textBeforeCursor = messageToBeSend.slice(0, cursorPosition);
+    const textAfterCursor = messageToBeSend.slice(cursorPosition);
+    const newText = textBeforeCursor + emoji + textAfterCursor;
+
+    setMessageToBeSend(newText);
+
+    // Focus on input and set cursor position after emoji
+    setTimeout(() => {
+      inputRef.current.focus();
+      const newCursorPosition = cursorPosition + emoji.length;
+      inputRef.current.setSelectionRange(newCursorPosition, newCursorPosition);
+    }, 10);
+  };
+
+  const toggleEmojiPicker = () => {
+    setShowEmojiPicker((prev) => !prev);
+  };
+
+  const handleClickAway = () => {
+    if (showEmojiPicker) {
+      setShowEmojiPicker(false);
+    }
+  };
+
+  const formatTime = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     });
   };
+
+  // Function to format date for message date headers
+  const formatMessageDate = (dateString) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Check if date is today
+    if (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    ) {
+      return "Today";
+    }
+
+    // Check if date is yesterday
+    if (
+      date.getDate() === yesterday.getDate() &&
+      date.getMonth() === yesterday.getMonth() &&
+      date.getFullYear() === yesterday.getFullYear()
+    ) {
+      return "Yesterday";
+    }
+
+    // Return formatted date for older messages
+    return date.toLocaleDateString(undefined, {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  // Group messages by date
+  const groupMessagesByDate = () => {
+    const groupedMessages = [];
+    let currentDate = null;
+
+    messages.forEach((message) => {
+      const messageDate = new Date(message.createdAt).setHours(0, 0, 0, 0);
+
+      if (currentDate !== messageDate) {
+        currentDate = messageDate;
+        groupedMessages.push({
+          type: "date",
+          date: message.createdAt,
+          id: `date-${messageDate}`,
+        });
+      }
+
+      groupedMessages.push({
+        type: "message",
+        data: message,
+      });
+    });
+
+    return groupedMessages;
+  };
+
+  const groupedMessages = groupMessagesByDate();
 
   return (
     <div
@@ -184,29 +278,48 @@ const ChatArea = () => {
 
         {/* Chat Messages Area with Fixed Scrollbar */}
         <div
-          className={`flex-1 p-3 lg:p-4 overflow-y-auto  chat-container scroll-smooth no-scrollbar ${
+          className={`flex-1 p-3 lg:p-4 overflow-y-auto chat-container scroll-smooth no-scrollbar ${
             lightTheme
               ? "bg-gray-50 "
               : "bg-gradient-to-b from-[#2A2D27] to-[#323329] "
           } transition-all duration-300`}
           style={{
             overflowY: "auto",
-            // scrollbarWidth: "thin",
-            // scrollbarColor: lightTheme ? "#d1d5db #f3f4f6" : "#4b5563 #1f2937",
           }}
         >
-          {messages.map((item, index) => {
-            const time = formatDate(item.createdAt);
-            return item.senderId === loggedInUser._id ? (
-              <MessageSelf key={index} text={item.text} time={time} />
-            ) : (
-              <MessageOther
-                key={index}
-                text={item.text}
-                pic={receiverData?.pic}
-                time={time}
-              />
-            );
+          {groupedMessages.map((item, index) => {
+            if (item.type === "date") {
+              return (
+                <div key={item.id} className="flex justify-center my-3">
+                  <div
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      lightTheme
+                        ? "bg-gray-200 text-gray-600"
+                        : "bg-gray-700 text-gray-300"
+                    }`}
+                  >
+                    {formatMessageDate(item.date)}
+                  </div>
+                </div>
+              );
+            } else {
+              const message = item.data;
+              const time = formatTime(message.createdAt);
+              return message.senderId === loggedInUser._id ? (
+                <MessageSelf
+                  key={`msg-${index}`}
+                  text={message.text}
+                  time={time}
+                />
+              ) : (
+                <MessageOther
+                  key={`msg-${index}`}
+                  text={message.text}
+                  pic={receiverData?.pic}
+                  time={time}
+                />
+              );
+            }
           })}
 
           <div ref={scrollRef} />
@@ -235,39 +348,75 @@ const ChatArea = () => {
               </IconButton>
             </Tooltip>
 
-            <Tooltip title="Emojis">
-              <IconButton
-                size="small"
-                className={`flex-shrink-0 hover:scale-110 transition-transform duration-300 ${
-                  lightTheme ? "hover:bg-gray-100" : "hover:bg-[#3C3D37]"
-                }`}
-              >
-                <EmojiEmotionsIcon
-                  className={lightTheme ? "text-gray-600" : "text-gray-300"}
-                  fontSize="small"
-                />
-              </IconButton>
-            </Tooltip>
+            <ClickAwayListener onClickAway={handleClickAway}>
+              <div className="relative">
+                <Tooltip title="Emojis">
+                  <IconButton
+                    size="small"
+                    onClick={toggleEmojiPicker}
+                    className={`flex-shrink-0 hover:scale-110 transition-transform duration-300 ${
+                      lightTheme ? "hover:bg-gray-100" : "hover:bg-[#3C3D37]"
+                    } ${
+                      showEmojiPicker
+                        ? lightTheme
+                          ? "bg-gray-200"
+                          : "bg-[#4A4B45]"
+                        : ""
+                    }`}
+                  >
+                    <EmojiEmotionsIcon
+                      className={lightTheme ? "text-gray-600" : "text-gray-300"}
+                      fontSize="small"
+                    />
+                  </IconButton>
+                </Tooltip>
+
+                {showEmojiPicker && (
+                  <div
+                    ref={emojiPickerRef}
+                    className="absolute bottom-12 left-0 z-10"
+                  >
+                    <div
+                      className={`p-2 rounded-lg shadow-lg ${
+                        lightTheme ? "bg-white" : "bg-[#2A2D27]"
+                      }`}
+                    >
+                      <div className="flex justify-between items-center mb-2 px-2">
+                        <span
+                          className={`text-sm font-medium ${
+                            lightTheme ? "text-gray-700" : "text-gray-300"
+                          }`}
+                        >
+                          Emojis
+                        </span>
+                        <IconButton
+                          size="small"
+                          onClick={() => setShowEmojiPicker(false)}
+                        >
+                          <CloseIcon
+                            fontSize="small"
+                            className={
+                              lightTheme ? "text-gray-500" : "text-gray-400"
+                            }
+                          />
+                        </IconButton>
+                      </div>
+                      <EmojiPicker
+                        onEmojiClick={handleEmojiClick}
+                        autoFocusSearch={false}
+                        theme={lightTheme ? "light" : "dark"}
+                        searchDisabled
+                        skinTonesDisabled
+                        height={350}
+                        width={isSmallScreen ? 250 : 320}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </ClickAwayListener>
 
             <div className="relative flex-1">
-              {/* <input
-                ref={inputRef}
-                type="text"
-                placeholder="Type a message..."
-                className={`w-full py-2 px-4 rounded-full outline-none text-sm lg:text-base transition-all duration-300 ${
-                  lightTheme
-                    ? "bg-gray-100 text-gray-800 focus:ring-2 focus:ring-blue-200"
-                    : "bg-[#3C3D37] text-white focus:ring-2 focus:ring-blue-700"
-                }`}
-                value={messageToBeSend}
-                onChange={handleTyping}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-              /> */}
               <input
                 ref={inputRef}
                 type="text"
@@ -302,46 +451,25 @@ const ChatArea = () => {
               </IconButton>
             </Tooltip>
 
-            {/* <Tooltip title="Send">
-              <IconButton
-                size="small"
-                className={`flex-shrink-0 hover:scale-110 transition-transform duration-300 ${
-                  isTyping
-                    ? lightTheme
-                      ? "bg-blue-500 hover:bg-blue-600 text-white"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
-                    : lightTheme
-                    ? "bg-gray-200"
-                    : "bg-gray-700"
-                }`}
-                onClick={handleSendMessage}
-                disabled={!isTyping}
-              >
-                <TelegramIcon
-                  className={
-                    isTyping
-                      ? "text-white"
-                      : lightTheme
-                      ? "text-gray-600"
-                      : "text-gray-300"
-                  }
-                  fontSize="small"
-                />
-              </IconButton>
-            </Tooltip> */}
             <Tooltip title="Send message" placement="top">
               <IconButton
                 size={isSmallScreen ? "small" : "medium"}
                 onClick={handleSendMessage}
-                // disabled={!isTyping}
-                // className={` ${
-                //   lightTheme
-                //     ? "bg-blue-500 hover:bg-blue-600 text-white"
-                //     : "bg-blue-600  hover:bg-blue-700 text-white"
-                // }`}
+                disabled={!messageToBeSend.trim()}
+                className={`${
+                  messageToBeSend.trim() ? "opacity-100" : "opacity-60"
+                }`}
               >
                 <TelegramIcon
-                  className={lightTheme ? "text-gray-600" : "text-gray-300"}
+                  className={`${
+                    messageToBeSend.trim()
+                      ? lightTheme
+                        ? "text-blue-500"
+                        : "text-blue-400"
+                      : lightTheme
+                      ? "text-gray-400"
+                      : "text-gray-500"
+                  }`}
                   fontSize={isSmallScreen ? "small" : "medium"}
                 />
               </IconButton>
