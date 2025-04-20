@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { io } from "socket.io-client";
+
+import React, { useEffect, useRef, useState } from "react";
 import NightlightIcon from "@mui/icons-material/Nightlight";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import PublicIcon from "@mui/icons-material/Public";
@@ -31,6 +33,8 @@ const SideNavChatList = () => {
   const isCreateGroupRoute = location.pathname.includes("/create-group");
   const [chatList, setChatList] = useState([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState([]);
+  const socket = useRef();
 
   // On mobile, if we're in a chat or create-group, don't show the chat list
   if (isSmallScreen && (isChatRoute || isCreateGroupRoute)) {
@@ -91,6 +95,18 @@ const SideNavChatList = () => {
 
     return () => clearTimeout(debounceTimer);
   }, [search]);
+
+  useEffect(() => {
+    socket.current = io("http://localhost:5000");
+
+    socket.current.on("getUsers", (users) => {
+      setOnlineUsers(users);
+    });
+
+    return () => {
+      socket.current.disconnect();
+    };
+  }, []);
 
   const clearSearch = () => {
     setSearch("");
@@ -319,6 +335,7 @@ const SideNavChatList = () => {
                   key={index}
                   data={item}
                   lightTheam={lightTheme}
+                  onlineUsers={onlineUsers}
                   onSelect={async () => {
                     clearSearch();
                     navigate(`chat/${item._id}`);
@@ -351,6 +368,7 @@ const SideNavChatList = () => {
                             key={index}
                             data={item}
                             lightTheam={lightTheme}
+                            onlineUsers={onlineUsers}
                             onSelect={() => {
                               navigate(`chat/${item._id}`);
                             }}

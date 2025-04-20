@@ -13,6 +13,7 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import api from "../../config/axios";
 import EmojiPicker from "emoji-picker-react";
+import { io } from "socket.io-client";
 
 const ChatArea = () => {
   const isSmallScreen = useMediaQuery({ maxWidth: 1150 });
@@ -22,11 +23,47 @@ const ChatArea = () => {
   const [loggedInUser, setLoggedInUser] = useState({});
   const [messageToBeSend, setMessageToBeSend] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [receiverIsTyping, setReceiverIsTyping] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState([]);
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
   const emojiPickerRef = useRef(null);
+  const socket = useRef();
+  const typingTimeoutRef = useRef(null);
   const { id } = useParams();
+
+  // Initialize socket connection
+  useEffect(() => {
+    socket.current = io("http://localhost:5000");
+
+    // Listen for events
+    socket.current.on("receiveMessage", (data) => {
+      setMessages((prev) => [...prev, data]);
+    });
+
+    socket.current.on("userTyping", (data) => {
+      if (data.senderId === id) {
+        setReceiverIsTyping(data.isTyping);
+      }
+    });
+
+    socket.current.on("getUsers", (users) => {
+      setOnlineUsers(users);
+    });
+
+    // Clean up on component unmount
+    return () => {
+      socket.current.disconnect();
+    };
+  }, []);
+
+  // Add user to socket when logged in
+  useEffect(() => {
+    if (loggedInUser && loggedInUser._id) {
+      socket.current.emit("addUser", loggedInUser._id);
+    }
+  }, [loggedInUser]);
 
   useEffect(() => {
     const fetchReceiverData = async () => {
@@ -86,6 +123,11 @@ const ChatArea = () => {
     }
   }, [messages]);
 
+  useEffect(() => {
+    if (receiverIsTyping && scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [receiverIsTyping]);
   const handleSendMessage = async () => {
     if (!messageToBeSend.trim()) return;
 
@@ -103,9 +145,25 @@ const ChatArea = () => {
         }
       );
 
+      // Send message through socket
+      socket.current.emit("sendMessage", {
+        ...data,
+        receiverId: id,
+        senderId: loggedInUser._id,
+      });
+
+      // Update local state
       setMessages((prev) => [...prev, data]);
       setMessageToBeSend("");
       setShowEmojiPicker(false);
+
+      // Send stop typing event
+      socket.current.emit("typing", {
+        senderId: loggedInUser._id,
+        receiverId: id,
+        isTyping: false,
+      });
+
       setTimeout(() => {
         const chatContainer = document.querySelector(".chat-container");
         if (chatContainer) {
@@ -119,7 +177,31 @@ const ChatArea = () => {
 
   const handleTyping = (e) => {
     setMessageToBeSend(e.target.value);
-    setIsTyping(e.target.value.length > 0);
+
+    // Send typing status to socket
+    if (!isTyping) {
+      setIsTyping(true);
+      socket.current.emit("typing", {
+        senderId: loggedInUser._id,
+        receiverId: id,
+        isTyping: true,
+      });
+    }
+
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set new timeout for when user stops typing
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.current.emit("typing", {
+        senderId: loggedInUser._id,
+        receiverId: id,
+        isTyping: false,
+      });
+      setIsTyping(false);
+    }, 2000);
   };
 
   const handleEmojiClick = (emojiData) => {
@@ -191,6 +273,9 @@ const ChatArea = () => {
     });
   };
 
+  // Check if user is online
+  const isUserOnline = onlineUsers.includes(receiverData._id);
+
   // Group messages by date
   const groupMessagesByDate = () => {
     const groupedMessages = [];
@@ -252,7 +337,9 @@ const ChatArea = () => {
               }}
             />
             <span
-              className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-green-400 border-2 ${
+              className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full ${
+                isUserOnline ? "bg-green-400" : "bg-gray-400"
+              } border-2 ${
                 lightTheme ? "border-white" : "border-[#2A2D27]"
               } transition-all duration-300`}
             ></span>
@@ -268,10 +355,16 @@ const ChatArea = () => {
             </h1>
             <p
               className={`text-xs ${
-                lightTheme ? "text-green-600" : "text-green-400"
+                isUserOnline
+                  ? lightTheme
+                    ? "text-green-600"
+                    : "text-green-400"
+                  : lightTheme
+                  ? "text-gray-500"
+                  : "text-gray-400"
               } transition-all duration-300`}
             >
-              Online
+              {isUserOnline ? "Online" : "Offline"}
             </p>
           </div>
         </div>
@@ -321,6 +414,67 @@ const ChatArea = () => {
               );
             }
           })}
+
+          {/* Typing indicator */}
+          {/* {receiverIsTyping && (
+            <div className="flex items-center gap-2 mt-2 mb-2 px-2">
+              <Avatar
+                alt={receiverData?.name || "User"}
+                src={receiverData?.pic}
+                sx={{ width: 24, height: 24 }}
+              />
+              <div
+                className={`px-3 py-2 rounded-lg ${
+                  lightTheme ? "bg-gray-200" : "bg-[#4A4B45]"
+                }`}
+              >
+                <div className="flex gap-1">
+                  <span
+                    className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
+                    style={{ animationDelay: "0ms" }}
+                  ></span>
+                  <span
+                    className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
+                    style={{ animationDelay: "200ms" }}
+                  ></span>
+                  <span
+                    className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
+                    style={{ animationDelay: "400ms" }}
+                  ></span>
+                </div>
+              </div>
+            </div>
+          )} */}
+
+          {receiverIsTyping && (
+            <div className="flex items-center gap-2 mt-2 mb-2 px-2">
+              <Avatar
+                alt={receiverData?.name || "User"}
+                src={receiverData?.pic}
+                sx={{ width: 24, height: 24 }}
+              />
+              <div
+                className={`px-3 py-2 rounded-lg ${
+                  lightTheme ? "bg-gray-200" : "bg-[#4A4B45]"
+                }`}
+              >
+                <div className="flex gap-1">
+                  <span
+                    className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
+                    style={{ animationDelay: "0ms" }}
+                  ></span>
+                  <span
+                    className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
+                    style={{ animationDelay: "200ms" }}
+                  ></span>
+                  <span
+                    className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
+                    style={{ animationDelay: "400ms" }}
+                  ></span>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div ref={scrollRef} />
         </div>

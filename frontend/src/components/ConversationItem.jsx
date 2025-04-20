@@ -6,11 +6,11 @@ import PersonIcon from "@mui/icons-material/Person";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 
 const ConversationsItem = (props) => {
-  const navigate = useNavigate();
   const lightTheme = useSelector((state) => state.themeKey);
 
-  // Sample online status - replace with actual data in production
-  const isOnline = props.data?._id % 2 === 0; // Just for demo purposes
+  // Check if the user is online using the onlineUsers prop passed from parent
+  const isOnline =
+    props.onlineUsers && props.onlineUsers.includes(props.data?._id);
 
   return (
     <div
@@ -27,14 +27,12 @@ const ConversationsItem = (props) => {
           overlap="circular"
           anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
           badgeContent={
-            isOnline ? (
-              <FiberManualRecordIcon
-                className={`text-green-500 ${
-                  props.lightTheam ? "bg-white" : "bg-[#2A2D27]"
-                }`}
-                style={{ fontSize: "12px", borderRadius: "50%" }}
-              />
-            ) : null
+            <FiberManualRecordIcon
+              className={`${isOnline ? "text-green-500" : "text-gray-400"} ${
+                props.lightTheam ? "bg-white" : "bg-[#2A2D27]"
+              }`}
+              style={{ fontSize: "12px", borderRadius: "50%" }}
+            />
           }
         >
           <Avatar
