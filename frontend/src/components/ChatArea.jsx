@@ -128,6 +128,23 @@ const ChatArea = () => {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [receiverIsTyping]);
+
+  useEffect(() => {
+    const addUserToChatList = async (userId) => {
+      try {
+        const res = await api.post(
+          "/user/add-to-chat-list",
+          { userId },
+          { withCredentials: true }
+        );
+      } catch (error) {
+        console.error("Error adding user to chat list:", error);
+      }
+    };
+
+    addUserToChatList(id);
+  }, []);
+
   const handleSendMessage = async () => {
     if (!messageToBeSend.trim()) return;
 

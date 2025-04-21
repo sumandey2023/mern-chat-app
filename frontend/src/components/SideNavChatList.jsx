@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import NightlightIcon from "@mui/icons-material/Nightlight";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import PublicIcon from "@mui/icons-material/Public";
+import QrCodeIcon from "@mui/icons-material/QrCode";
 import GroupIcon from "@mui/icons-material/Group";
 import PanoramaFishEyeIcon from "@mui/icons-material/PanoramaFishEye";
 import VideocamIcon from "@mui/icons-material/Videocam";
@@ -141,15 +142,20 @@ const SideNavChatList = () => {
       label: "Groups",
       action: () => navigate("groups"),
     },
-    {
-      icon: <AddCircleOutlineIcon className="text-white" />,
-      label: "Create Group",
-      action: () => navigate("create-group"),
-    },
+    // {
+    //   icon: <AddCircleOutlineIcon className="text-white" />,
+    //   label: "Create Group",
+    //   action: () => navigate("create-group"),
+    // },
     {
       icon: <PanoramaFishEyeIcon className="text-white" />,
       label: "AI Chat",
       action: () => navigate("ai-chat"),
+    },
+    {
+      icon: <QrCodeIcon className="text-white" />,
+      label: "Public",
+      action: () => navigate("public"),
     },
     {
       icon: <VideocamIcon className="text-white" />,

@@ -21,9 +21,10 @@ import {
 } from "@mui/icons-material";
 
 import { toast, ToastContainer } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../../config/axios";
 import BASE_URL from "../../config/api";
+
 // ⚠️ Update path according to your project structure
 
 const CreateGroup = () => {
@@ -34,8 +35,23 @@ const CreateGroup = () => {
   const [groupDescription, setGroupDescription] = useState("");
   const [groupIcon, setGroupIcon] = useState({ file: null, preview: null });
   const [filteredUsers, setFilteredUsers] = useState([]);
-
+  const [userData, setUserData] = useState({});
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const { data } = await api.get("/user/get-user-details", {
+          withCredentials: true,
+        });
+        setUserData(data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getUser();
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -167,19 +183,23 @@ const CreateGroup = () => {
         iconUrl = await uploadGroupIcon(groupIcon.file);
       }
 
+      // Add the logged-in user to the group
       const groupData = {
         groupName,
         groupDescription,
-        members: selectedUsers.map((u) => u.id),
-        icon: iconUrl,
+        members: [...selectedUsers.map((user) => user._id), userData.user._id],
+        pic: iconUrl,
+        admin: userData.user._id,
       };
 
-      console.log("Creating group:", groupData);
-      // Send to backend
-      // const response = await api.post("/group/create", groupData);
+      const { newGroup } = await api.post("/group/createGroup", groupData, {
+        withCredentials: true,
+      });
 
       toast.success("Group created successfully!");
-      navigate("/groups"); // or your desired route
+      navigate("/app/groups", {
+        state: { createGroupMessage: "Group created successfully!" },
+      });
     } catch (error) {
       toast.error("Failed to create group");
     }
@@ -363,8 +383,6 @@ const CreateGroup = () => {
             </div>
           </Box>
         )}
-
-        {console.log(selectedUsers)}
 
         {searchQuery && filteredUsers.length > 0 && (
           <Box

@@ -1,31 +1,33 @@
 const mongoose = require("mongoose");
+
 const groupChatModel = mongoose.Schema(
   {
-    name: {
+    groupName: {
       type: String,
       required: true,
     },
-    description: {
+    groupDescription: {
       type: String,
-      required: true,
     },
-    members: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: "User",
-      default: [],
-    },
-    admin: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    groupPic: {
+    members: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+    ],
+    admin: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+    ],
+    pic: {
       type: String,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 const Group = mongoose.model("Group", groupChatModel);

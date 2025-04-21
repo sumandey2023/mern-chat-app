@@ -1,28 +1,26 @@
 const mongoose = require("mongoose");
-const messageModel = mongoose.Schema(
+
+const groupMessageModel = mongoose.Schema(
   {
     senderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      require: true,
+      required: true,
     },
-    receiverId: {
+    groupId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      require: true,
+      ref: "Group",
+      required: true,
     },
     text: {
       type: String,
     },
-
     image: {
       type: String,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-const Message = mongoose.model("Message", messageModel);
-module.exports = Message;
+const GroupMessage = mongoose.model("GroupMessage", groupMessageModel);
+module.exports = GroupMessage;

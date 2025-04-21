@@ -5,6 +5,7 @@ const db = require("./config/connectDB");
 const cookieParser = require("cookie-parser");
 const userRoutes = require("./Routes/userRoute");
 const messageRoute = require("./Routes/messageRoute");
+const groupRoute = require("./Routes/groupRoute");
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 const http = require("http");
@@ -42,6 +43,7 @@ app.use(cookieParser());
 // Routes
 app.use("/user", upload.single("pic"), userRoutes);
 app.use("/message", upload.single("pic"), messageRoute);
+app.use("/group", upload.single("pic"), groupRoute);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

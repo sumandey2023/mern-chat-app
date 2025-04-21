@@ -61,7 +61,9 @@ const Public = () => {
         >
           All Users
         </h1>
-
+        {console.log(
+          `${window.location.origin}/app/chat/68037bf45bafea071663b904`
+        )}
         <div
           className={`bg-white rounded-2xl flex-1 overflow-y-auto no-scrollbar ${
             lightTheme ? "" : "!bg-[#3C3D37]"
