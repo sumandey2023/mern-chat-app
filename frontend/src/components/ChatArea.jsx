@@ -14,6 +14,7 @@ import { useParams } from "react-router-dom";
 import api from "../../config/axios";
 import EmojiPicker from "emoji-picker-react";
 import { io } from "socket.io-client";
+import BASE_URL from "../../config/api";
 
 const ChatArea = () => {
   const isSmallScreen = useMediaQuery({ maxWidth: 1150 });
@@ -35,7 +36,7 @@ const ChatArea = () => {
 
   // Initialize socket connection
   useEffect(() => {
-    socket.current = io("http://localhost:5000");
+    socket.current = io(BASE_URL);
 
     // Listen for events
     socket.current.on("receiveMessage", (data) => {

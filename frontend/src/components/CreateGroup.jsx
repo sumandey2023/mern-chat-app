@@ -8,24 +8,19 @@ import {
   InputAdornment,
   Paper,
   Typography,
-  IconButton,
   Box,
-  Divider,
 } from "@mui/material";
 import {
   Search,
   Add,
-  Delete as DeleteIcon,
   PhotoCamera as PhotoCameraIcon,
   Group as GroupIcon,
 } from "@mui/icons-material";
 
 import { toast, ToastContainer } from "react-toastify";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from "../../config/axios";
 import BASE_URL from "../../config/api";
-
-// ⚠️ Update path according to your project structure
 
 const CreateGroup = () => {
   const lightTheme = useSelector((state) => state.themeKey);
@@ -36,8 +31,8 @@ const CreateGroup = () => {
   const [groupIcon, setGroupIcon] = useState({ file: null, preview: null });
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [userData, setUserData] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     const getUser = async () => {
@@ -47,7 +42,8 @@ const CreateGroup = () => {
         });
         setUserData(data);
       } catch (error) {
-        console.log(error);
+        console.error("Failed to fetch user details:", error);
+        toast.error("Failed to load user information");
       }
     };
     getUser();
@@ -55,6 +51,7 @@ const CreateGroup = () => {
 
   useEffect(() => {
     return () => {
+      // Clean up object URL when component unmounts
       if (groupIcon.preview) URL.revokeObjectURL(groupIcon.preview);
     };
   }, [groupIcon]);
@@ -62,62 +59,18 @@ const CreateGroup = () => {
   const handleGroupIconChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image size should be less than 5MB");
-        return;
-      }
       const imageURL = URL.createObjectURL(file);
       setGroupIcon({ file, preview: imageURL });
     }
   };
 
-  const handleRemoveGroupIcon = () => {
-    if (groupIcon.preview) URL.revokeObjectURL(groupIcon.preview);
-    setGroupIcon({ file: null, preview: null });
-  };
-
-  const uploadGroupIcon = async (file) => {
-    try {
-      const formData = new FormData();
-      formData.append("groupIcon", file);
-
-      const response = await api.post("/group/upload-icon", formData, {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      return response.data.iconUrl;
-    } catch (error) {
-      console.error("Group icon upload failed:", error);
-      throw new Error("Failed to upload group icon");
-    }
-  };
-
-  const mockUsers = [
-    { id: 1, name: "Alex Johnson", avatar: "AJ", email: "alex@example.com" },
-    { id: 2, name: "Maya Patel", avatar: "MP", email: "maya@example.com" },
-    {
-      id: 3,
-      name: "Carlos Rodriguez",
-      avatar: "CR",
-      email: "carlos@example.com",
-    },
-    { id: 4, name: "Sarah Kim", avatar: "SK", email: "sarah@example.com" },
-    { id: 5, name: "John Smith", avatar: "JS", email: "john@example.com" },
-  ];
-
-  // const filteredUsers = mockUsers
-  //   .filter(
-  //     (user) =>
-  //       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-  //       user.email.toLowerCase().includes(searchQuery.toLowerCase())
-  //   )
-  //   .filter((user) => !selectedUsers.some((u) => u.id === user.id));
-
   useEffect(() => {
     const fetchUsers = async () => {
+      if (!searchQuery.trim()) {
+        setFilteredUsers([]);
+        return;
+      }
+
       try {
         const res = await fetch(
           `${BASE_URL}/user/searchUsers?search=${searchQuery}`,
@@ -131,10 +84,8 @@ const CreateGroup = () => {
 
         if (!res.ok) {
           if (res.status === 401) {
-            console.error("User is not authenticated");
-            toast.error("User is not authenticated");
-            navigate("/login"); // Redirect to login page
-
+            toast.error("Session expired. Please login again");
+            navigate("/login");
             return;
           }
           throw new Error("Failed to fetch users");
@@ -143,21 +94,17 @@ const CreateGroup = () => {
         setFilteredUsers(result);
       } catch (error) {
         console.error("Failed to fetch users:", error);
-        toast.error("Failed to fetch users");
+        toast.error("Failed to search users");
         setFilteredUsers([]);
       }
     };
 
     const debounceTimer = setTimeout(() => {
-      if (searchQuery.trim() !== "") {
-        fetchUsers();
-      } else {
-        setFilteredUsers([]);
-      }
+      fetchUsers();
     }, 300);
 
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery]);
+  }, [searchQuery, navigate]);
 
   const handleAddUser = (user) => {
     if (selectedUsers.some((u) => u._id === user._id)) {
@@ -177,23 +124,48 @@ const CreateGroup = () => {
   };
 
   const handleCreateGroup = async () => {
-    try {
-      let iconUrl = null;
-      if (groupIcon.file) {
-        iconUrl = await uploadGroupIcon(groupIcon.file);
-      }
+    if (!groupName.trim()) {
+      toast.error("Group name is required");
+      return;
+    }
 
-      // Add the logged-in user to the group
+    if (selectedUsers.length === 0) {
+      toast.error("Select at least one member for the group");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Create a FormData object to send both text data and file
+      const formData = new FormData();
+
+      // Add group info
       const groupData = {
         groupName,
         groupDescription,
         members: [...selectedUsers.map((user) => user._id), userData.user._id],
-        pic: iconUrl,
+        pic: null, // This will be handled by the file upload
         admin: userData.user._id,
       };
 
-      const { newGroup } = await api.post("/group/createGroup", groupData, {
+      // Add the JSON data
+      formData.append("groupInfo", JSON.stringify(groupData));
+
+      // Add the file if it exists
+      if (groupIcon.file) {
+        formData.append("pic", groupIcon.file);
+      }
+      toast.info("Creating group...", {
+        autoClose: 10000,
+      });
+
+      // Make a single request with all the data
+      const { data } = await api.post("/group/createGroup", formData, {
         withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
       toast.success("Group created successfully!");
@@ -201,7 +173,12 @@ const CreateGroup = () => {
         state: { createGroupMessage: "Group created successfully!" },
       });
     } catch (error) {
-      toast.error("Failed to create group");
+      console.error("Failed to create group:", error);
+      const errorMessage =
+        error.response?.data?.message || "Failed to create group";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -242,29 +219,10 @@ const CreateGroup = () => {
 
             <label
               htmlFor="group-icon-upload"
-              className="absolute -bottom-3 -right-2 bg-blue-500 p-2 rounded-full cursor-pointer shadow-lg hover:bg-blue-600 transition-all duration-200"
+              className="absolute -bottom-1 -right-1 bg-blue-500 p-1 rounded-full cursor-pointer shadow-lg hover:bg-blue-600 transition-all duration-200"
             >
               <PhotoCameraIcon sx={{ fontSize: "1.3rem", color: "white" }} />
             </label>
-
-            {groupIcon.preview && (
-              <IconButton
-                onClick={handleRemoveGroupIcon}
-                size="small"
-                sx={{
-                  position: "absolute",
-                  top: -5,
-                  right: -5,
-                  backgroundColor: lightTheme ? "#E74C3C" : "#FF5252",
-                  color: "white",
-                  "&:hover": {
-                    backgroundColor: lightTheme ? "#C0392B" : "#D32F2F",
-                  },
-                }}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            )}
           </Box>
 
           <input
@@ -326,19 +284,6 @@ const CreateGroup = () => {
           }}
         />
 
-        {/* <Divider
-          className={`my-6 mb-2 ${lightTheme ? "bg-gray-200" : "!bg-gray-700"}`}
-        /> */}
-
-        {/* <Typography
-          variant="subtitle1"
-          className={`mb-2 font-medium text-gray-700 ${
-            lightTheme ? "" : "!text-gray-200"
-          }`}
-        >
-          Add Members
-        </Typography> */}
-
         <TextField
           label="Search Users"
           value={searchQuery}
@@ -374,7 +319,7 @@ const CreateGroup = () => {
               {selectedUsers.map((user) => (
                 <Chip
                   key={user._id}
-                  avatar={<Avatar>{user.avatar}</Avatar>}
+                  avatar={<Avatar alt={user.name} src={user.pic} />}
                   label={user.name}
                   onDelete={() => handleRemoveUser(user._id)}
                   sx={{ borderRadius: "8px", padding: "2px 0" }}
@@ -394,7 +339,7 @@ const CreateGroup = () => {
               <div
                 key={user._id}
                 className={`flex items-center justify-between p-3 mb-1 rounded-lg cursor-pointer hover:bg-gray-200 ${
-                  lightTheme ? "" : "!bg-[#181C14]"
+                  lightTheme ? "" : "hover:bg-gray-800 !bg-[#181C14]"
                 } `}
                 onClick={() => handleAddUser(user)}
               >
@@ -435,13 +380,25 @@ const CreateGroup = () => {
           </Box>
         )}
 
+        {searchQuery && filteredUsers.length === 0 && (
+          <Box className="text-center p-3 mb-3">
+            <Typography
+              className={lightTheme ? "text-gray-500" : "text-gray-400"}
+            >
+              No users found
+            </Typography>
+          </Box>
+        )}
+
         <Button
           variant="contained"
           color="primary"
           fullWidth
           size="large"
           onClick={handleCreateGroup}
-          disabled={!groupName.trim() || selectedUsers.length === 0}
+          disabled={
+            !groupName.trim() || selectedUsers.length === 0 || isSubmitting
+          }
           sx={{
             mt: 2,
             borderRadius: "12px",
@@ -451,7 +408,7 @@ const CreateGroup = () => {
             padding: "12px",
           }}
         >
-          Create Group
+          {isSubmitting ? "Creating..." : "Create Group"}
         </Button>
       </Paper>
       <ToastContainer

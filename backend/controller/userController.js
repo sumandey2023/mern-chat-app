@@ -56,6 +56,7 @@ const loginController = asyncHandler(async (req, res) => {
 // Signup controller
 const signupController = asyncHandler(async (req, res) => {
   const { name, email, username, password, pic } = req.body;
+  console.log(pic);
 
   const usernameExist = await userModel.findOne({ username });
   const emailExist = await userModel.findOne({ email });
@@ -142,7 +143,6 @@ const logOutController = asyncHandler(async (req, res) => {
   });
 });
 
-
 const fetchAllUsers = asyncHandler(async (req, res) => {
   const keyword = req.query.search
     ? {
@@ -163,7 +163,6 @@ const fetchAllUsers = asyncHandler(async (req, res) => {
   res.send(users);
 });
 
-
 const getUserDetails = asyncHandler(async (req, res) => {
   const token = req.cookies.token;
   try {
@@ -178,7 +177,6 @@ const getUserDetails = asyncHandler(async (req, res) => {
       .json({ success: false, message: "Something went wrong" });
   }
 });
-
 
 const searchUsers = asyncHandler(async (req, res) => {
   const token = req.cookies.token;
@@ -205,7 +203,6 @@ const searchUsers = asyncHandler(async (req, res) => {
   }
 });
 
-
 const getChatUser = asyncHandler(async (req, res) => {
   try {
     const userId = req.params.id;
@@ -215,7 +212,6 @@ const getChatUser = asyncHandler(async (req, res) => {
     console.log(error);
   }
 });
-
 
 const addToChatList = asyncHandler(async (req, res) => {
   try {
@@ -241,7 +237,6 @@ const addToChatList = asyncHandler(async (req, res) => {
   }
 });
 
-
 const chatlist = asyncHandler(async (req, res) => {
   try {
     const logedInUserId = req.user._id;
@@ -257,7 +252,6 @@ const chatlist = asyncHandler(async (req, res) => {
     res.status(400).json({ message: "Error fetching chat list" });
   }
 });
-
 
 module.exports = {
   signupController,

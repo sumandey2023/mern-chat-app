@@ -7,6 +7,7 @@ import { ToastContainer } from "react-toastify";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../config/axios";
+import GroupItem from "./GroupItem";
 
 const Groups = () => {
   const location = useLocation();
@@ -81,40 +82,7 @@ const Groups = () => {
           >
             <div className="flex flex-col gap-y-3 px-2 py-3">
               {data.map((item, index) => (
-                <div
-                  key={index}
-                  onClick={() => navigate(`/app/group`)}
-                  className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
-                    lightTheme ? "hover:bg-gray-100" : "hover:!bg-[#2A2D27]"
-                  }`}
-                >
-                  <div
-                    className={`w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-2xl shadow-md ${
-                      lightTheme ? "" : "!from-blue-600 !to-blue-700"
-                    }`}
-                  >
-                    {item.groupName[0].toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h2
-                      className={`text-lg font-semibold text-gray-800 truncate ${
-                        lightTheme ? "" : "!text-white"
-                      }`}
-                    >
-                      {item.groupName}
-                    </h2>
-                    <p
-                      className={`text-sm text-gray-500 truncate ${
-                        lightTheme ? "" : "!text-gray-400"
-                      }`}
-                    ></p>
-                  </div>
-                  <span
-                    className={`text-xs text-gray-400 whitespace-nowrap ${
-                      lightTheme ? "" : "!text-gray-500"
-                    }`}
-                  ></span>
-                </div>
+                <GroupItem key={index} item={item} />
               ))}
             </div>
           </div>

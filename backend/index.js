@@ -43,7 +43,7 @@ app.use(cookieParser());
 // Routes
 app.use("/user", upload.single("pic"), userRoutes);
 app.use("/message", upload.single("pic"), messageRoute);
-app.use("/group", upload.single("pic"), groupRoute);
+app.use("/group", groupRoute);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
