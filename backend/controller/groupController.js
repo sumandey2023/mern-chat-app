@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const groupChatModel = require("../model/groupChatModel");
+const groupMessageModel = require("../model/groupMessageModel");
 const cloudinary = require("cloudinary").v2;
 
 cloudinary.config({
@@ -79,7 +80,7 @@ const createGroup = asyncHandler(async (req, res) => {
   }
 });
 
-const getGroupsForUser = async (req, res) => {
+const getGroupsForUser = asyncHandler(async (req, res) => {
   try {
     const userId = req.user._id; // You can get this from your auth middleware
 
@@ -90,6 +91,57 @@ const getGroupsForUser = async (req, res) => {
     console.error("Failed to get user groups:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
-};
+});
 
-module.exports = { createGroup, getGroupsForUser };
+const getGroupDetails = asyncHandler(async (req, res) => {
+  try {
+    const groupId = req.params.id;
+    const groupDetails = await groupChatModel.findById(groupId);
+    res.status(200).json(groupDetails);
+  } catch (error) {
+    console.log(error.message);
+
+    res.status(500).send("Internal server error");
+  }
+});
+
+const getGroupMemberList = asyncHandler(async (req, res) => {
+  try {
+    const groupId = req.params.id;
+    const groupMembers = await groupChatModel
+      .findById(groupId)
+      .populate("members");
+    res.status(200).json(groupMembers);
+  } catch (error) {
+    res.status(500).send("Internal server error");
+  }
+});
+
+const sendGroupMessage = asyncHandler(async (req, res) => {
+  try {
+    const data = req.body.message;
+    const groupId = req.params.id;
+    const senderId = req.user._id;
+    const image = "";
+
+    const message = await groupMessageModel.create({
+      senderId,
+      groupId,
+      text: data,
+      image,
+    });
+
+    res.status(200).json(message);
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).send("Internal Server error");
+  }
+});
+module.exports = {
+  createGroup,
+  getGroupsForUser,
+  getGroupDetails,
+  getGroupMemberList,
+  sendGroupMessage,
+};

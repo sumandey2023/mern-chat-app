@@ -5,10 +5,16 @@ const isLoggedIn = require("../middleware/isLoggedIn");
 const {
   createGroup,
   getGroupsForUser,
+  getGroupDetails,
+  getGroupMemberList,
+  sendGroupMessage,
 } = require("../controller/groupController");
+
 const Router = express.Router();
 
 Router.post("/createGroup", upload.single("pic"), isLoggedIn, createGroup);
 Router.get("/getGroups", isLoggedIn, getGroupsForUser);
-
+Router.get("/groupDetails/:id", isLoggedIn, getGroupDetails);
+Router.get("/groupMemberList/:id", isLoggedIn, getGroupMemberList);
+Router.post("/sendMessage/:id", isLoggedIn, sendGroupMessage);
 module.exports = Router;

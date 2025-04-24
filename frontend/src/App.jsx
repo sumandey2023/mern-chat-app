@@ -15,6 +15,7 @@ import AIChat from "./components/AIChat";
 import Profile from "./components/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Public from "./components/Public";
+import GroupChatArea from "./components/GroupChatArea";
 
 const App = () => {
   const isSmallScreen = useMediaQuery({ maxWidth: 1150 });
@@ -63,6 +64,7 @@ const App = () => {
           <Route path="ai-chat" element={<AIChat />} />
           <Route path="profile" element={<Profile />} />
           <Route path="public" element={<Public />} />
+          <Route path="group/:id" element={<GroupChatArea />} />
         </Route>
       </Routes>
     </div>

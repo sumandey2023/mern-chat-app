@@ -17,6 +17,7 @@
     "@reduxjs/toolkit": "^2.6.1",
     "@tailwindcss/vite": "^4.0.17",
     "axios": "^1.8.4",
+    "date-fns": "^4.1.0",
     "emoji-picker-react": "^4.12.2",
     "lottie-react": "^2.4.1",
     "react": "^19.0.0",
