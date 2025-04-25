@@ -98,11 +98,28 @@ const SideNavChatList = () => {
   }, [search]);
 
   useEffect(() => {
-    socket.current = io("http://localhost:5000");
+    socket.current = io(BASE_URL);
 
+    // Listen for online users updates
     socket.current.on("getUsers", (users) => {
       setOnlineUsers(users);
     });
+
+    // Add current user to online users when component mounts
+    const addCurrentUser = async () => {
+      try {
+        const { data } = await api.get("/user/get-user-details", {
+          withCredentials: true,
+        });
+        if (data.user && data.user._id) {
+          socket.current.emit("addUser", data.user._id);
+        }
+      } catch (error) {
+        console.error("Error getting user details:", error);
+      }
+    };
+
+    addCurrentUser();
 
     return () => {
       socket.current.disconnect();
@@ -369,17 +386,74 @@ const SideNavChatList = () => {
                         >
                           Recent Chats
                         </div>
-                        {chatList.map((item, index) => (
-                          <ConversationsItem
-                            key={index}
-                            data={item}
-                            lightTheam={lightTheme}
-                            onlineUsers={onlineUsers}
-                            onSelect={() => {
-                              navigate(`chat/${item._id}`);
-                            }}
-                          />
-                        ))}
+                        <div className="flex flex-col gap-y-3 px-4 py-3">
+                          {chatList.map((item, index) => (
+                            <div
+                              key={index}
+                              onClick={() => {
+                                navigate(`/app/chat/${item._id}`);
+                              }}
+                              className={`flex items-center justify-between gap-4 p-4 rounded-xl cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md hover:scale-[1.02] ${
+                                lightTheme
+                                  ? "bg-white hover:bg-gray-100"
+                                  : "bg-[#1E1E1E] hover:!bg-[#2A2D27]"
+                              }`}
+                            >
+                              <div className="flex items-center gap-4">
+                                <div className="relative">
+                                  <Avatar
+                                    alt={item.name}
+                                    src={item.pic}
+                                    sx={{
+                                      width: 50,
+                                      height: 50,
+                                      border: `2px solid ${
+                                        lightTheme ? "#e5e7eb" : "#4b5563"
+                                      }`,
+                                    }}
+                                  />
+                                  <span
+                                    className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full ${
+                                      onlineUsers.includes(item._id)
+                                        ? "bg-green-400"
+                                        : "bg-gray-400"
+                                    } border-2 ${
+                                      lightTheme
+                                        ? "border-white"
+                                        : "border-[#1E1E1E]"
+                                    }`}
+                                  ></span>
+                                </div>
+                                <div>
+                                  <h1
+                                    className={`text-base font-semibold ${
+                                      lightTheme
+                                        ? "text-gray-800"
+                                        : "text-white"
+                                    }`}
+                                  >
+                                    {item.name}
+                                  </h1>
+                                  <p
+                                    className={`text-xs ${
+                                      onlineUsers.includes(item._id)
+                                        ? lightTheme
+                                          ? "text-green-600"
+                                          : "text-green-400"
+                                        : lightTheme
+                                        ? "text-gray-500"
+                                        : "text-gray-400"
+                                    }`}
+                                  >
+                                    {onlineUsers.includes(item._id)
+                                      ? "Online"
+                                      : "Offline"}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </>
                     ) : (
                       <div className="flex flex-col items-center justify-center h-full py-10 text-center">
