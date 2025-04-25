@@ -38,7 +38,7 @@ const TitleBar = () => {
         <h1
           className={`text-2xl font-bold tracking-wide ${
             lightTheme ? "text-white" : "text-gray-200"
-          } transition-all duration-300`}
+          } transition-all duration-300 `}
         >
           Adda<span className="text-blue-300">.</span>
           <span className="text-blue-200">.</span>

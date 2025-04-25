@@ -138,10 +138,22 @@ const sendGroupMessage = asyncHandler(async (req, res) => {
     res.status(500).send("Internal Server error");
   }
 });
+
+const getAllChatOfGroup = asyncHandler(async (req, res) => {
+  try {
+    const groupId = req.params.id;
+    const messages = await groupMessageModel.find({ groupId });
+    res.status(200).json(messages);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send(error.message);
+  }
+});
 module.exports = {
   createGroup,
   getGroupsForUser,
   getGroupDetails,
   getGroupMemberList,
   sendGroupMessage,
+  getAllChatOfGroup,
 };

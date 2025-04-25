@@ -64,10 +64,12 @@ const GroupChatArea = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [loggedInUser, setLoggedInUser] = useState({});
 
   // Placeholder for member list (would be populated from groupDetail.members in real implementation)
   const [memberList, setMemberList] = useState([]);
   const [admins, setAdmins] = useState([]);
+  const [allMessages, setAllMessages] = useState([]);
 
   useEffect(() => {
     const fetchGroupDetails = async () => {
@@ -214,6 +216,34 @@ const GroupChatArea = () => {
     fetchGroupMembers();
   }, []);
 
+  useEffect(() => {
+    const getLoggedInUser = async () => {
+      try {
+        const { data } = await api.get("/user/get-user-details", {
+          withCredentials: true,
+        });
+        setLoggedInUser(data.user);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getLoggedInUser();
+  }, []);
+
+  useEffect(() => {
+    const fetchGroupMessages = async () => {
+      try {
+        const messages = await api.get(`/group/allChats/${id}`, {
+          withCredentials: true,
+        });
+        setAllMessages(messages.data);
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
+    fetchGroupMessages();
+  }, []);
+
   return (
     <div
       className={`grow py-4 px-3 h-full transition-colors duration-300 ${
@@ -225,6 +255,7 @@ const GroupChatArea = () => {
           lightTheme ? "bg-white" : "bg-[#3C3D37]"
         } transition-all duration-300`}
       >
+        {console.log(allMessages)}
         {/* Header */}
         <div
           className={`flex items-center justify-between px-4 py-3 border-b transition-colors duration-300 ${
@@ -312,19 +343,26 @@ const GroupChatArea = () => {
               }}
             >
               {/* Message content will go here */}
-
-              <MessageOther text={"hello"} />
-              <MessageSelf text={"hi"} />
-              <MessageOther text={"how are you"} />
-              <MessageSelf text={"I am fine"} />
-              <MessageOther text={"what about you"} />
-              <MessageSelf text={"I am also fine"} />
-              <MessageOther text={"what are you doing"} />
-              <MessageSelf text={"I am working"} />
-              <MessageOther text={"what about you"} />
-              <MessageSelf text={"I am also working"} />
-              <MessageOther text={"what are you doing"} />
-              <MessageSelf text={"I am working"} />
+              {console.log(loggedInUser)}
+              {allMessages.map((message) => {
+                {
+                  console.log(message);
+                }
+                return (
+                  <div key={message._id}>
+                    {message.senderId === loggedInUser._id ? (
+                      <MessageSelf text={message.text} />
+                    ) : (
+                      <MessageOther
+                        // key={`msg-${index}`}
+                        text={message.text}
+                        // pic={receiverData?.pic}
+                        // time={time}
+                      />
+                    )}
+                  </div>
+                );
+              })}
               <div ref={scrollRef} />
             </div>
 
@@ -482,7 +520,7 @@ const GroupChatArea = () => {
           </div>
 
           {/* Group Info Side Panel */}
-          <Collapse in={showGroupInfo} orientation="horizontal">
+          {/* <Collapse in={showGroupInfo} orientation="horizontal">
             <div
               className={`w-72 border-l overflow-y-auto ${
                 lightTheme
@@ -576,8 +614,9 @@ const GroupChatArea = () => {
                 <List
                   className={`${
                     lightTheme ? "bg-gray-50" : "bg-[#3C3D37]"
-                  } rounded-lg  max-h-70 no-scrollbar md:max-h-70 lg:max-h-70 overflow-y-auto`}
+                  } rounded-lg no-scrollbar overflow-y-auto max-h-80`} // <-- changed to a valid height
                 >
+                  {console.log(memberList)}
                   {memberList.map((member) => (
                     <ListItem
                       key={member._id}
@@ -650,11 +689,105 @@ const GroupChatArea = () => {
                     </ListItem>
                   ))}
                 </List>
+              </div>
+            </div>
+          </Collapse> */}
 
-                {/* <List
+          <Collapse in={showGroupInfo} orientation="horizontal">
+            <div
+              className={`w-72 border-l ${
+                lightTheme
+                  ? "bg-white border-gray-200"
+                  : "bg-[#2A2D27] border-gray-700"
+              } flex flex-col max-h-[100vh]`}
+            >
+              <div className="p-4 overflow-y-auto flex-grow">
+                <div className="flex justify-center mb-4">
+                  <Avatar
+                    alt={groupDetail?.groupName || "Group"}
+                    src={groupDetail?.pic}
+                    sx={{
+                      width: 100,
+                      height: 100,
+                      border: `3px solid ${lightTheme ? "#3498DB" : "#4DD0E1"}`,
+                      bgcolor: lightTheme ? "#f0f7fc" : "#223240",
+                      boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
+                    }}
+                  >
+                    {!groupDetail?.pic && (
+                      <GroupIcon
+                        sx={{
+                          fontSize: "3rem",
+                          color: lightTheme ? "#3498DB" : "#4DD0E1",
+                        }}
+                      />
+                    )}
+                  </Avatar>
+                </div>
+
+                <Typography
+                  variant="h6"
+                  align="center"
+                  className={`font-semibold ${
+                    lightTheme ? "text-gray-800" : "text-white"
+                  }`}
+                >
+                  {groupDetail?.groupName || "Group Name"}
+                </Typography>
+
+                <Typography
+                  variant="body2"
+                  align="center"
+                  className={`mt-1 ${
+                    lightTheme ? "text-gray-600" : "text-gray-300"
+                  }`}
+                >
+                  Created on {formatDate(groupDetail?.createdAt)}
+                </Typography>
+
+                <Box
+                  className={`mt-4 p-3 rounded-lg ${
+                    lightTheme ? "bg-gray-50" : "bg-[#3C3D37]"
+                  }`}
+                >
+                  <Typography
+                    variant="body2"
+                    className={lightTheme ? "text-gray-700" : "text-gray-200"}
+                  >
+                    {groupDetail?.groupDescription ||
+                      "No description provided."}
+                  </Typography>
+                </Box>
+
+                <Divider className="my-4 " />
+
+                <div className="flex justify-between items-center mt-3 mb-3">
+                  <Typography
+                    variant="subtitle1"
+                    className={`font-medium ${
+                      lightTheme ? "text-gray-800" : "text-white"
+                    }`}
+                  >
+                    Members ({memberList.length})
+                  </Typography>
+
+                  <Button
+                    startIcon={<PersonAddIcon />}
+                    size="small"
+                    variant="outlined"
+                    onClick={() => setOpenAddMemberDialog(true)}
+                    className={`text-xs ${
+                      lightTheme ? "" : "border-gray-600 text-gray-300"
+                    }`}
+                  >
+                    Add
+                  </Button>
+                </div>
+
+                <List
                   className={`${
                     lightTheme ? "bg-gray-50" : "bg-[#3C3D37]"
-                  } rounded-lg max-h-full overflow-y-auto no-scrollbar  md:max-h-70  `}
+                  } rounded-lg overflow-y-auto no-scrollbar max-h-[250px]`}
                 >
                   {memberList.map((member) => (
                     <ListItem
@@ -678,7 +811,7 @@ const GroupChatArea = () => {
                             >
                               {member.name}
                             </span>
-                            {member.isAdmin && (
+                            {admins.includes(member._id) && (
                               <Tooltip title="Admin">
                                 <AdminPanelSettingsIcon
                                   fontSize="small"
@@ -695,9 +828,11 @@ const GroupChatArea = () => {
                             edge="end"
                             size="small"
                             onClick={() => handleMakeAdmin(member._id)}
-                            disabled={member.isAdmin}
+                            disabled={admins.includes(member._id)}
                             className={`mr-1 ${
-                              member.isAdmin ? "opacity-50" : "opacity-100"
+                              admins.includes(member._id)
+                                ? "opacity-50"
+                                : "opacity-100"
                             }`}
                           >
                             <AdminPanelSettingsIcon
@@ -725,83 +860,7 @@ const GroupChatArea = () => {
                       </ListItemSecondaryAction>
                     </ListItem>
                   ))}
-                </List> */}
-
-                {/* <List
-                  className={`${
-                    lightTheme ? "bg-gray-50" : "bg-[#3C3D37]"
-                  } rounded-lg h-full overflow-y-auto`}
-                >
-                  {memberList.map((member) => (
-                    <ListItem
-                      key={member._id}
-                      className={`mb-1 rounded-lg ${
-                        lightTheme ? "hover:bg-gray-100" : "hover:bg-[#4A4B45]"
-                      }`}
-                    >
-                      <ListItemAvatar>
-                        <Avatar src={member.pic} alt={member.name}>
-                          {member.name.charAt(0)}
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <div className="flex items-center">
-                            <span
-                              className={
-                                lightTheme ? "text-gray-800" : "text-white"
-                              }
-                            >
-                              {member.name}
-                            </span>
-                            {member.isAdmin && (
-                              <Tooltip title="Admin">
-                                <AdminPanelSettingsIcon
-                                  fontSize="small"
-                                  className="ml-1 text-blue-500"
-                                />
-                              </Tooltip>
-                            )}
-                          </div>
-                        }
-                      />
-                      <ListItemSecondaryAction>
-                        <Tooltip title="Make Admin">
-                          <IconButton
-                            edge="end"
-                            size="small"
-                            onClick={() => handleMakeAdmin(member._id)}
-                            disabled={member.isAdmin}
-                            className={`mr-1 ${
-                              member.isAdmin ? "opacity-50" : "opacity-100"
-                            }`}
-                          >
-                            <AdminPanelSettingsIcon
-                              fontSize="small"
-                              className={
-                                lightTheme ? "text-blue-500" : "text-blue-400"
-                              }
-                            />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Remove Member">
-                          <IconButton
-                            edge="end"
-                            size="small"
-                            onClick={() => handleRemoveMember(member._id)}
-                          >
-                            <DeleteIcon
-                              fontSize="small"
-                              className={
-                                lightTheme ? "text-red-500" : "text-red-400"
-                              }
-                            />
-                          </IconButton>
-                        </Tooltip>
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  ))}
-                </List> */}
+                </List>
               </div>
             </div>
           </Collapse>
