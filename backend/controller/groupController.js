@@ -142,13 +142,53 @@ const sendGroupMessage = asyncHandler(async (req, res) => {
 const getAllChatOfGroup = asyncHandler(async (req, res) => {
   try {
     const groupId = req.params.id;
-    const messages = await groupMessageModel.find({ groupId });
+    const messages = await groupMessageModel
+      .find({ groupId })
+      .populate("senderId");
     res.status(200).json(messages);
   } catch (error) {
     console.log(error);
     res.status(500).send(error.message);
   }
 });
+
+const addNewMembersToGroup = asyncHandler(async (req, res) => {
+  try {
+    console.log("run");
+
+    const groupId = req.body.groupId;
+    const addList = req.body.addList; // array of user IDs to add
+
+    const group = await groupChatModel.findById(groupId);
+
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    // Convert ObjectIds to strings for comparison
+    const currentMembers = group.members.map((id) => id.toString());
+
+    const newMembers = addList.filter(
+      (userId) => !currentMembers.includes(userId)
+    );
+
+    if (!newMembers.length) {
+      return res
+        .status(400)
+        .json({ message: "User(s) already present in group" });
+    }
+
+    group.members.push(...newMembers);
+
+    await group.save();
+
+    res.status(200).json({ message: "Members added successfully", group });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Failed to add in group");
+  }
+});
+
 module.exports = {
   createGroup,
   getGroupsForUser,
@@ -156,4 +196,5 @@ module.exports = {
   getGroupMemberList,
   sendGroupMessage,
   getAllChatOfGroup,
+  addNewMembersToGroup,
 };

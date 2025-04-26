@@ -49,6 +49,8 @@ import { io } from "socket.io-client";
 import BASE_URL from "../../config/api";
 import { format } from "date-fns";
 import MessageOtherGroup from "./MessageOtherGroup";
+import { toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 
 const GroupChatArea = () => {
   const isSmallScreen = useMediaQuery({ maxWidth: 1150 });
@@ -204,7 +206,7 @@ const GroupChatArea = () => {
 
   const handleAddUser = (user) => {
     if (selectedUsers.some((u) => u._id === user._id)) {
-      return; // User already selected
+      return;
     }
     setSelectedUsers([...selectedUsers, user]);
     setSearchQuery("");
@@ -215,13 +217,48 @@ const GroupChatArea = () => {
   };
 
   const handleAddMembersToGroup = async () => {
-    // This would be connected to backend API later
-    console.log("Adding members:", selectedUsers);
+    try {
+      const dataToSend = {
+        groupId: id,
+        addList: selectedUsers.map((user) => user._id),
+      };
 
-    // Close dialog and reset selection
-    setOpenAddMemberDialog(false);
-    setSelectedUsers([]);
-    setSearchQuery("");
+      console.log("Sending data to backend:", dataToSend);
+
+      const addedMembers = await api.post("/group/addNewMember", dataToSend, {
+        withCredentials: true,
+      });
+
+      // Show success message from backend
+      if (addedMembers.data && addedMembers.data.message) {
+        toast.success(addedMembers.data.message);
+      } else {
+        toast.success("Members added successfully");
+      }
+
+      // Close dialog and reset selection
+      setOpenAddMemberDialog(false);
+      setSelectedUsers([]);
+      setSearchQuery("");
+    } catch (error) {
+      console.error("Error adding members to group:", error);
+
+      // Check if the error is because user is already in group
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to add members to group");
+      }
+
+      // Close dialog and reset selection even if there's an error
+      setOpenAddMemberDialog(false);
+      setSelectedUsers([]);
+      setSearchQuery("");
+    }
   };
 
   const handleRemoveMember = (memberId) => {
@@ -449,6 +486,19 @@ const GroupChatArea = () => {
         lightTheme ? "bg-gray-100" : "bg-[#181C14]"
       } transition-all duration-300`}
     >
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme={lightTheme ? "light" : "dark"}
+      />
+
       <div
         className={`flex flex-col h-full rounded-2xl shadow-lg overflow-hidden transition-colors duration-300 ${
           lightTheme ? "bg-white" : "bg-[#3C3D37]"
@@ -570,21 +620,6 @@ const GroupChatArea = () => {
                       time={formatTime(message.createdAt)}
                     />
                   ) : (
-                    // <MessageOtherGroup
-                    //   key={`msg-${index}`}
-                    //   text={message.text}
-                    //   pic={
-                    //     typeof message.senderId === "object"
-                    //       ? message.senderId?.pic
-                    //       : null
-                    //   }
-                    //   time={formatTime(message.createdAt)}
-                    //   senderName={
-                    //     typeof message.senderId === "object"
-                    //       ? message.senderId?.name
-                    //       : null
-                    //   }
-                    // />
                     <MessageOtherGroup
                       key={`msg-${index}`}
                       text={message.text}
