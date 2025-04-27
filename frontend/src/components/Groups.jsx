@@ -22,7 +22,11 @@ const Groups = () => {
   useEffect(() => {
     if (location.state?.createGroupMessage) {
       toast.success(location.state.createGroupMessage);
-      // Clear the state to prevent showing toast on page refresh
+
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+    if (location.state?.leaveGroup) {
+      toast.success(location.state.leaveGroup);
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location, navigate]);
@@ -137,7 +141,7 @@ const Groups = () => {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="colored"
+        // theme="colored"
       />
     </div>
   );

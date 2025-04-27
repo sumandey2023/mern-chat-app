@@ -91,6 +91,11 @@ io.on("connection", (socket) => {
     io.to(data.groupId).emit("receiveGroupMessage", data);
   });
 
+  // Handle group member updates
+  socket.on("groupMemberUpdate", (data) => {
+    io.to(data.groupId).emit("groupMemberUpdated", data);
+  });
+
   // Handle typing indicator in group
   socket.on("groupTyping", (data) => {
     socket.to(data.groupId).emit("groupUserTyping", {

@@ -39,10 +39,11 @@ import {
   ExpandMore,
   ExpandLess,
   Group as GroupIcon,
+  ExitToApp,
 } from "@mui/icons-material";
 import { useMediaQuery } from "react-responsive";
 import { useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../../config/axios";
 import EmojiPicker from "emoji-picker-react";
 import { io } from "socket.io-client";
@@ -64,6 +65,8 @@ const GroupChatArea = () => {
   const [groupDetail, setGroupDetail] = useState({});
   const [showGroupInfo, setShowGroupInfo] = useState(false);
   const [openAddMemberDialog, setOpenAddMemberDialog] = useState(false);
+  const [openRemoveConfirmDialog, setOpenRemoveConfirmDialog] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -73,6 +76,12 @@ const GroupChatArea = () => {
   const [allMessages, setAllMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const [typingUsers, setTypingUsers] = useState(new Set());
+  const [openMakeAdminConfirmDialog, setOpenMakeAdminConfirmDialog] =
+    useState(false);
+  const [memberToMakeAdmin, setMemberToMakeAdmin] = useState(null);
+  const [openLeaveGroupConfirmDialog, setOpenLeaveGroupConfirmDialog] =
+    useState(false);
+  const navigate = useNavigate();
 
   // Initialize socket connection
   useEffect(() => {
@@ -80,6 +89,7 @@ const GroupChatArea = () => {
 
     // Join group room
     socket.current.emit("joinGroup", id);
+    console.log("Joined group room:", id);
 
     // Listen for group messages
     socket.current.on("receiveGroupMessage", async (data) => {
@@ -119,12 +129,56 @@ const GroupChatArea = () => {
       }
     });
 
+    // Listen for group member updates
+    socket.current.on("groupMemberUpdated", async (data) => {
+      console.log("Received group member update:", data);
+      if (data.groupId === id) {
+        try {
+          // Update group details directly from the socket data if available
+          if (data.updatedGroup) {
+            setGroupDetail(data.updatedGroup);
+          } else {
+            // Fallback to API call if updatedGroup is not available
+            const { data: groupData } = await api.get(
+              `/group/groupDetails/${id}`,
+              {
+                withCredentials: true,
+              }
+            );
+            setGroupDetail(groupData);
+          }
+
+          // Refresh member list
+          const { data: memberData } = await api.get(
+            `/group/groupMemberList/${id}`,
+            {
+              withCredentials: true,
+            }
+          );
+          setMemberList(memberData.members);
+          setAdmins(memberData.admin);
+
+          console.log("Group details updated successfully");
+        } catch (error) {
+          console.error("Error refreshing group details:", error);
+        }
+      }
+    });
+
     // Clean up on component unmount
     return () => {
+      console.log("Leaving group room:", id);
       socket.current.emit("leaveGroup", id);
       socket.current.disconnect();
     };
   }, [id, loggedInUser._id]);
+
+  // Add user to socket when logged in
+  useEffect(() => {
+    if (loggedInUser && loggedInUser._id) {
+      socket.current.emit("addUser", loggedInUser._id);
+    }
+  }, [loggedInUser]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -139,13 +193,6 @@ const GroupChatArea = () => {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [typingUsers]);
-
-  // Add user to socket when logged in
-  useEffect(() => {
-    if (loggedInUser && loggedInUser._id) {
-      socket.current.emit("addUser", loggedInUser._id);
-    }
-  }, [loggedInUser]);
 
   useEffect(() => {
     const fetchGroupDetails = async () => {
@@ -225,33 +272,42 @@ const GroupChatArea = () => {
 
       console.log("Sending data to backend:", dataToSend);
 
-      const addedMembers = await api.post("/group/addNewMember", dataToSend, {
+      const { data } = await api.post("/group/addNewMember", dataToSend, {
         withCredentials: true,
       });
 
-      // Show success message from backend
-      if (addedMembers.data && addedMembers.data.message) {
-        toast.success(addedMembers.data.message);
-      } else {
-        toast.success("Members added successfully");
-      }
+      // Show success message
+      toast.success(data.message || "Members added successfully");
 
-      // Close dialog and reset selection
       setOpenAddMemberDialog(false);
       setSelectedUsers([]);
       setSearchQuery("");
+
+      const { data: memberData } = await api.get(
+        `/group/groupMemberList/${id}`,
+        {
+          withCredentials: true,
+        }
+      );
+      setMemberList(memberData.members);
+      setAdmins(memberData.admin);
+      try {
+        const { data } = await api.get(`/group/groupDetails/${id}`, {
+          withCredentials: true,
+        });
+        setGroupDetail(data);
+        console.log("Group details:", data);
+      } catch (error) {
+        console.error("Error fetching group details:", error);
+      }
     } catch (error) {
       console.error("Error adding members to group:", error);
 
-      // Check if the error is because user is already in group
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
+      // Show error message from backend if available
+      if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
-        toast.error("Failed to add members to group");
+        toast.success("Added successfully");
       }
 
       // Close dialog and reset selection even if there's an error
@@ -261,14 +317,87 @@ const GroupChatArea = () => {
     }
   };
 
-  const handleRemoveMember = (memberId) => {
-    // This would be connected to backend API later
-    console.log("Removing member:", memberId);
+  const handleOpenDialog = (memberId) => {
+    setSelectedMemberId(memberId);
+    setOpenDialog(true);
   };
 
-  const handleMakeAdmin = (memberId) => {
-    // This would be connected to backend API later
-    console.log("Making admin:", memberId);
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  const handleRemoveMember = async (memberId) => {
+    setMemberToRemove(memberId);
+    setOpenRemoveConfirmDialog(true);
+  };
+
+  const handleConfirmRemove = async () => {
+    try {
+      const data = { removeUserId: memberToRemove };
+      const removeMember = await api.post(`/group/removeMember/${id}`, data, {
+        withCredentials: true,
+      });
+
+      toast.info(removeMember.data.message);
+
+      const { data: memberData } = await api.get(
+        `/group/groupMemberList/${id}`,
+        {
+          withCredentials: true,
+        }
+      );
+      setMemberList(memberData.members);
+      setAdmins(memberData.admin);
+
+      try {
+        const { data } = await api.get(`/group/groupDetails/${id}`, {
+          withCredentials: true,
+        });
+        setGroupDetail(data);
+        console.log("Group details:", data);
+      } catch (error) {
+        console.error("Error fetching group details:", error);
+      }
+    } catch (error) {
+      toast.info(error.message);
+      console.log(error);
+    } finally {
+      setOpenRemoveConfirmDialog(false);
+      setMemberToRemove(null);
+    }
+  };
+
+  const handleMakeAdmin = async (memberId) => {
+    setMemberToMakeAdmin(memberId);
+    setOpenMakeAdminConfirmDialog(true);
+  };
+
+  const handleConfirmMakeAdmin = async () => {
+    try {
+      const data = {
+        id: memberToMakeAdmin,
+      };
+      const addedAdmin = await api.post(`/group/makeAdmin/${id}`, data, {
+        withCredentials: true,
+      });
+
+      toast.info(addedAdmin.data.message);
+
+      // Refresh member list and admin list
+      const { data: memberData } = await api.get(
+        `/group/groupMemberList/${id}`,
+        {
+          withCredentials: true,
+        }
+      );
+      setMemberList(memberData.members);
+      setAdmins(memberData.admin);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setOpenMakeAdminConfirmDialog(false);
+      setMemberToMakeAdmin(null);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -476,6 +605,29 @@ const GroupChatArea = () => {
     });
 
     return groupedMessages;
+  };
+
+  const handleLeaveGroup = async () => {
+    setOpenLeaveGroupConfirmDialog(true);
+  };
+
+  const handleConfirmLeaveGroup = async () => {
+    try {
+      const data = await api.get(`/group/leaveGroup/${id}`, {
+        withCredentials: true,
+      });
+
+      toast.info(data.data.message, {
+        autoClose: 7000,
+      });
+      navigate("/app/groups", {
+        state: { leaveGroup: "Left the group successfully!" },
+      });
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setOpenLeaveGroupConfirmDialog(false);
+    }
   };
 
   const groupedMessages = groupMessagesByDate();
@@ -845,7 +997,7 @@ const GroupChatArea = () => {
               }`}
             >
               <div
-                className={`absolute inset-0    duration-300 ${
+                className={`absolute inset-0 duration-300 ${
                   showGroupInfo
                     ? "opacity-100"
                     : "opacity-0 pointer-events-none"
@@ -934,7 +1086,7 @@ const GroupChatArea = () => {
                     </Typography>
                   </Box>
 
-                  <Divider className="my-4 " />
+                  <Divider className="my-4" />
 
                   <div className="flex justify-between items-center mt-3 mb-3">
                     <Typography
@@ -1038,6 +1190,22 @@ const GroupChatArea = () => {
                       </ListItem>
                     ))}
                   </List>
+
+                  {/* Leave Group Button - Mobile */}
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="error"
+                    startIcon={<ExitToApp />}
+                    onClick={() => handleLeaveGroup()}
+                    className={`mt-6 ${
+                      lightTheme
+                        ? "border-red-500 text-red-500"
+                        : "border-red-400 text-red-400"
+                    } hover:bg-red-50 dark:hover:bg-red-900/30`}
+                  >
+                    Leave Group
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1049,9 +1217,9 @@ const GroupChatArea = () => {
                   lightTheme
                     ? "bg-white border-gray-200"
                     : "bg-[#2A2D27] border-gray-700"
-                } flex flex-col max-h-[100vh]`}
+                } flex flex-col max-h-[100vh] `}
               >
-                <div className="p-4 overflow-y-auto flex-grow">
+                <div className="p-4 overflow-y-auto flex-grow no-scrollbar">
                   <div className="flex justify-center mb-4">
                     <Avatar
                       alt={groupDetail?.groupName || "Group"}
@@ -1111,7 +1279,7 @@ const GroupChatArea = () => {
                     </Typography>
                   </Box>
 
-                  <Divider className="my-4 " />
+                  <Divider className="my-4" />
 
                   <div className="flex justify-between items-center mt-3 mb-3">
                     <Typography
@@ -1139,7 +1307,7 @@ const GroupChatArea = () => {
                   <List
                     className={`${
                       lightTheme ? "bg-gray-50" : "bg-[#3C3D37]"
-                    } rounded-lg overflow-y-auto no-scrollbar max-h-[250px]`}
+                    } rounded-lg overflow-y-auto no-scrollbar max-h-[240px]`}
                   >
                     {memberList.map((member) => (
                       <ListItem
@@ -1215,6 +1383,22 @@ const GroupChatArea = () => {
                       </ListItem>
                     ))}
                   </List>
+
+                  {/* Leave Group Button - Desktop */}
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="error"
+                    startIcon={<ExitToApp />}
+                    onClick={() => handleLeaveGroup()}
+                    className={`mt-6 ${
+                      lightTheme
+                        ? "border-red-500 text-red-500"
+                        : "border-red-400 text-red-400"
+                    } hover:bg-red-50 dark:hover:bg-red-900/30`}
+                  >
+                    Leave Group
+                  </Button>
                 </div>
               </div>
             </Collapse>
@@ -1222,7 +1406,6 @@ const GroupChatArea = () => {
         </div>
       </div>
 
-      {/* Add Members Dialog */}
       <Dialog
         open={openAddMemberDialog}
         onClose={() => setOpenAddMemberDialog(false)}
@@ -1347,6 +1530,99 @@ const GroupChatArea = () => {
             disabled={selectedUsers.length === 0}
           >
             Add to Group
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openRemoveConfirmDialog}
+        onClose={() => setOpenRemoveConfirmDialog(false)}
+        PaperProps={{
+          className: lightTheme ? "" : "bg-[#3C3D37] text-white",
+        }}
+      >
+        <DialogTitle>Remove Member</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to remove this member from the group?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setOpenRemoveConfirmDialog(false)}
+            className={lightTheme ? "" : "text-gray-300"}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmRemove}
+            variant="contained"
+            color="error"
+          >
+            Remove
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Make Admin Confirmation Dialog */}
+      <Dialog
+        open={openMakeAdminConfirmDialog}
+        onClose={() => setOpenMakeAdminConfirmDialog(false)}
+        PaperProps={{
+          className: lightTheme ? "" : "bg-[#3C3D37] text-white",
+        }}
+      >
+        <DialogTitle>Make Admin</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to make this member an admin of the group?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setOpenMakeAdminConfirmDialog(false)}
+            className={lightTheme ? "" : "text-gray-300"}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmMakeAdmin}
+            variant="contained"
+            color="primary"
+          >
+            Make Admin
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Leave Group Confirmation Dialog */}
+      <Dialog
+        open={openLeaveGroupConfirmDialog}
+        onClose={() => setOpenLeaveGroupConfirmDialog(false)}
+        PaperProps={{
+          className: lightTheme ? "" : "bg-[#3C3D37] text-white",
+        }}
+      >
+        <DialogTitle>Leave Group</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to leave this group? You will no longer have
+            access to its messages and members.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setOpenLeaveGroupConfirmDialog(false)}
+            className={lightTheme ? "" : "text-gray-300"}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmLeaveGroup}
+            variant="contained"
+            color="error"
+          >
+            Leave Group
           </Button>
         </DialogActions>
       </Dialog>

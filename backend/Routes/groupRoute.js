@@ -10,6 +10,9 @@ const {
   sendGroupMessage,
   getAllChatOfGroup,
   addNewMembersToGroup,
+  removeMemberFromGroup,
+  makeAdminOfGroup,
+  leaveGroup,
 } = require("../controller/groupController");
 
 const Router = express.Router();
@@ -21,4 +24,7 @@ Router.get("/groupMemberList/:id", isLoggedIn, getGroupMemberList);
 Router.post("/sendMessage/:id", isLoggedIn, sendGroupMessage);
 Router.get("/allChats/:id", isLoggedIn, getAllChatOfGroup);
 Router.post("/addNewMember", isLoggedIn, addNewMembersToGroup);
+Router.post("/removeMember/:id", isLoggedIn, removeMemberFromGroup);
+Router.post("/makeAdmin/:id", isLoggedIn, makeAdminOfGroup);
+Router.get("/leaveGroup/:id", isLoggedIn, leaveGroup);
 module.exports = Router;

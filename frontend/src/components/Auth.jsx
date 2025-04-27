@@ -86,7 +86,6 @@ const Auth = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    
   };
 
   const loginHandler = async () => {
@@ -478,7 +477,6 @@ const Auth = () => {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="colored"
       />
       <div className="fixed bottom-2 right-2">
         <p className="text-xs font-medium text-gray-600 bg-white bg-opacity-80 px-2 py-1 rounded-full shadow-sm">

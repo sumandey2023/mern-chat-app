@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const groupChatModel = require("../model/groupChatModel");
 const groupMessageModel = require("../model/groupMessageModel");
 const cloudinary = require("cloudinary").v2;
+const { io } = require("../index");
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -189,6 +190,99 @@ const addNewMembersToGroup = asyncHandler(async (req, res) => {
   }
 });
 
+const removeMemberFromGroup = asyncHandler(async (req, res) => {
+  try {
+    const groupID = req.params.id;
+    const removeUserId = req.body.removeUserId;
+    const logedInUserID = req.user._id;
+    if (removeUserId == logedInUserID) {
+      return res.status(200).json({
+        message: "You can only leave the group, not remove yourself.",
+      });
+    }
+    const group = await groupChatModel.findById(groupID);
+    if (group.admin.includes(logedInUserID)) {
+      if (group.admin.includes(removeUserId)) {
+        return res.status(200).json({
+          message: "Group admin can't be removed, only leave the group.",
+        });
+      } else {
+        await groupChatModel.findByIdAndUpdate(
+          groupID,
+          { $pull: { members: removeUserId } },
+          { new: true }
+        );
+        return res
+          .status(200)
+          .json({ message: "You successfully removed the group member." });
+      }
+    } else {
+      return res.status(200).json({ message: "Only admin can remove members" });
+    }
+  } catch (error) {
+    return res.status(400).json("Failed to remove member");
+  }
+});
+const makeAdminOfGroup = asyncHandler(async (req, res) => {
+  try {
+    const logedInUserId = req.user._id;
+    const groupId = req.params.id;
+    const personWhoBecameAdmin = req.body.id;
+    const group = await groupChatModel.findById(groupId);
+
+    if (group.admin.includes(logedInUserId)) {
+      await groupChatModel.findByIdAndUpdate(
+        groupId,
+        { $addToSet: { admin: personWhoBecameAdmin } },
+        { new: true }
+      );
+
+      return res
+        .status(200)
+        .json({ message: "User has been made admin successfully" });
+    } else {
+      return res
+        .status(200)
+        .json({ message: "Only admin can make any one admin" });
+    }
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+});
+
+const leaveGroup = asyncHandler(async (req, res) => {
+  try {
+    const groupId = req.params.id;
+    const userId = req.user._id;
+    const group = await groupChatModel.findById(groupId);
+    if (group.admin.includes(userId) && group.admin.length == 1) {
+      return res.status(200).json({
+        message:
+          "You can't leave as the only admin. Please assign another admin first.",
+      });
+    } else {
+      if (group.admin.includes(userId)) {
+        await groupChatModel.findByIdAndUpdate(
+          groupId,
+          { $pull: { admin: userId } },
+          { new: true }
+        );
+      }
+      await groupChatModel.findByIdAndUpdate(
+        groupId,
+        { $pull: { members: userId } },
+        { new: true }
+      );
+
+      return res
+        .status(200)
+        .json({ message: "You successfully leave from the group." });
+    }
+  } catch (error) {
+    return res.status(400).send(error.message);
+  }
+});
+
 module.exports = {
   createGroup,
   getGroupsForUser,
@@ -197,4 +291,7 @@ module.exports = {
   sendGroupMessage,
   getAllChatOfGroup,
   addNewMembersToGroup,
+  removeMemberFromGroup,
+  makeAdminOfGroup,
+  leaveGroup,
 };
