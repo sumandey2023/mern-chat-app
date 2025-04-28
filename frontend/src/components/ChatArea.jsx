@@ -32,7 +32,8 @@ import api from "../config/api";
 import EmojiPicker from "emoji-picker-react";
 import { io } from "socket.io-client";
 import { format } from "date-fns";
-import { toast } from "react-hot-toast";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ChatArea = () => {
   const isSmallScreen = useMediaQuery({ maxWidth: 1150 });
@@ -402,18 +403,31 @@ const ChatArea = () => {
         lightTheme ? "bg-gray-100" : "bg-[#181C14]"
       } transition-all duration-300`}
     >
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme={lightTheme ? "light" : "dark"}
+      />
+
       <div
         className={`flex flex-col h-full rounded-2xl shadow-lg overflow-hidden transition-colors duration-300 ${
           lightTheme ? "bg-white" : "bg-[#3C3D37]"
         } transition-all duration-300`}
       >
-        {/* Header */}
+        {/* Header - Fixed at top */}
         <div
           className={`flex items-center justify-between px-4 py-3 border-b transition-colors duration-300 ${
             lightTheme
               ? "bg-white border-gray-200"
               : "bg-[#2A2D27] border-gray-700"
-          } transition-all duration-300`}
+          } transition-all duration-300 sticky top-0 z-10`}
         >
           <div className="flex items-center">
             <div className="relative">
@@ -497,6 +511,7 @@ const ChatArea = () => {
               } transition-all duration-300`}
               style={{
                 overflowY: "auto",
+                maxHeight: "calc(100vh - 200px)",
               }}
             >
               {groupedMessages.map((item, index) => {
@@ -569,13 +584,13 @@ const ChatArea = () => {
               <div ref={scrollRef} />
             </div>
 
-            {/* Properly Aligned Footer with Input and Buttons */}
+            {/* Input area - Fixed at bottom */}
             <div
               className={`px-3 py-2 border-t transition-colors duration-300 ${
                 lightTheme
                   ? "bg-white border-gray-200"
                   : "bg-[#2A2D27] border-gray-700"
-              } transition-all duration-300`}
+              } transition-all duration-300 sticky bottom-0 z-10`}
             >
               <div className="flex items-center gap-2">
                 <Tooltip title="Attach File">
@@ -620,10 +635,7 @@ const ChatArea = () => {
                     </Tooltip>
 
                     {showEmojiPicker && (
-                      <div
-                        ref={emojiPickerRef}
-                        className="absolute bottom-12 left-0 z-10"
-                      >
+                      <div className="absolute bottom-12 left-0 z-10">
                         <div
                           className={`p-2 rounded-lg shadow-lg ${
                             lightTheme ? "bg-white" : "bg-[#2A2D27]"
@@ -666,7 +678,6 @@ const ChatArea = () => {
 
                 <div className="relative flex-1">
                   <input
-                    ref={inputRef}
                     type="text"
                     value={messageToBeSend}
                     onChange={handleTyping}
@@ -682,6 +693,11 @@ const ChatArea = () => {
                         ? "bg-gray-100 text-gray-800 focus:bg-gray-200 focus:shadow-inner"
                         : "bg-[#3C3D37] text-white focus:bg-[#444440] focus:shadow-inner"
                     } transition-all duration-300`}
+                    // Prevent keyboard from closing
+                    onBlur={(e) => {
+                      e.preventDefault();
+                      e.target.focus();
+                    }}
                   />
                 </div>
 
