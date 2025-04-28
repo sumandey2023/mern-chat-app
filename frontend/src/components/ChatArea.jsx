@@ -32,6 +32,7 @@ import api from "../config/api";
 import EmojiPicker from "emoji-picker-react";
 import { io } from "socket.io-client";
 import { format } from "date-fns";
+import { toast } from "react-hot-toast";
 
 const ChatArea = () => {
   const isSmallScreen = useMediaQuery({ maxWidth: 1150 });
@@ -192,7 +193,31 @@ const ChatArea = () => {
   const handleSendMessage = async () => {
     if (!messageToBeSend.trim()) return;
 
+    // Create a temporary message object
+    const tempMessage = {
+      _id: Date.now().toString(), // Temporary ID
+      text: messageToBeSend,
+      senderId: loggedInUser._id,
+      receiverId: id,
+      createdAt: new Date().toISOString(),
+      isTemp: true, // Flag to identify temporary message
+    };
+
+    // Immediately update UI with temporary message
+    setMessages((prev) => [...prev, tempMessage]);
+    setMessageToBeSend("");
+    setShowEmojiPicker(false);
+
+    // Scroll to bottom immediately
+    setTimeout(() => {
+      const chatContainer = document.querySelector(".chat-container");
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    }, 0);
+
     try {
+      // Send message to backend
       const { data } = await api.post(
         `/message/send/${id}`,
         {
@@ -213,10 +238,10 @@ const ChatArea = () => {
         senderId: loggedInUser._id,
       });
 
-      // Update local state
-      setMessages((prev) => [...prev, data]);
-      setMessageToBeSend("");
-      setShowEmojiPicker(false);
+      // Replace temporary message with real one
+      setMessages((prev) =>
+        prev.map((msg) => (msg.isTemp ? { ...data, isTemp: false } : msg))
+      );
 
       // Send stop typing event
       socket.current.emit("typing", {
@@ -224,15 +249,11 @@ const ChatArea = () => {
         receiverId: id,
         isTyping: false,
       });
-
-      setTimeout(() => {
-        const chatContainer = document.querySelector(".chat-container");
-        if (chatContainer) {
-          chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-      }, 100);
     } catch (error) {
       console.error("Failed to send message:", error);
+      // Remove temporary message on error
+      setMessages((prev) => prev.filter((msg) => !msg.isTemp));
+      toast.error("Failed to send message. Please try again.");
     }
   };
 
@@ -501,6 +522,7 @@ const ChatArea = () => {
                       key={`msg-${index}`}
                       text={message.text}
                       time={time}
+                      isTemp={message.isTemp}
                     />
                   ) : (
                     <MessageOther

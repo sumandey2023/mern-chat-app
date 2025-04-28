@@ -9,6 +9,7 @@ import {
   Paper,
   Typography,
   Box,
+  CircularProgress,
 } from "@mui/material";
 import {
   Search,
@@ -31,6 +32,8 @@ const CreateGroup = () => {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [userData, setUserData] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -67,8 +70,12 @@ const CreateGroup = () => {
     const fetchUsers = async () => {
       if (!searchQuery.trim()) {
         setFilteredUsers([]);
+        setSearchError(null);
         return;
       }
+
+      setIsSearching(true);
+      setSearchError(null);
 
       try {
         const res = await fetch(
@@ -83,18 +90,21 @@ const CreateGroup = () => {
 
         if (!res.ok) {
           if (res.status === 401) {
-            toast.error("Session expired. Please login again");
-            navigate("/login");
+            setSearchError("Please login to search users");
+            setFilteredUsers([]);
             return;
           }
           throw new Error("Failed to fetch users");
         }
+
         const result = await res.json();
         setFilteredUsers(result);
       } catch (error) {
         console.error("Failed to fetch users:", error);
-        toast.error("Failed to search users");
+        setSearchError("Failed to search users. Please try again.");
         setFilteredUsers([]);
+      } finally {
+        setIsSearching(false);
       }
     };
 
@@ -103,7 +113,7 @@ const CreateGroup = () => {
     }, 300);
 
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery, navigate]);
+  }, [searchQuery]);
 
   const handleAddUser = (user) => {
     if (selectedUsers.some((u) => u._id === user._id)) {
@@ -328,64 +338,72 @@ const CreateGroup = () => {
           </Box>
         )}
 
-        {searchQuery && filteredUsers.length > 0 && (
+        {searchQuery && (
           <Box
-            className={`max-h-52 overflow-y-auto mb-4 rounded-xl p-2 bg-gray-50 ${
-              lightTheme ? "" : "!bg-[#181C14]"
+            className={`max-h-52 overflow-y-auto mb-4 rounded-xl p-2 ${
+              lightTheme ? "bg-gray-50" : "!bg-[#181C14]"
             } shadow-md`}
           >
-            {filteredUsers.map((user) => (
-              <div
-                key={user._id}
-                className={`flex items-center justify-between p-3 mb-1 rounded-lg cursor-pointer hover:bg-gray-200 ${
-                  lightTheme ? "" : "hover:bg-gray-800 !bg-[#181C14]"
-                } `}
-                onClick={() => handleAddUser(user)}
-              >
-                <div className="flex items-center">
-                  <Avatar className="mr-2 w-8 h-8 rounded-full overflow-hidden">
-                    <img
-                      src={user.pic || "/profile.webp"}
-                      alt="User Avatar"
-                      className="w-full h-full object-cover"
-                    />
-                  </Avatar>
-
-                  <div>
-                    <Typography
-                      className={`font-medium ${
-                        lightTheme ? "" : "!text-white"
-                      }`}
-                    >
-                      {user.name}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      className={` text-gray-500 ${
-                        lightTheme ? "" : "!text-gray-400"
-                      }`}
-                    >
-                      @{user.username}
-                    </Typography>
-                  </div>
-                </div>
-                <Add
-                  className={` ${
-                    lightTheme ? "" : "text-white"
-                  } hover:text-blue-500`}
-                />
+            {isSearching ? (
+              <div className="flex items-center justify-center py-4">
+                <CircularProgress size={24} className="text-blue-500" />
+                <span className="ml-2 text-gray-500">Searching...</span>
               </div>
-            ))}
-          </Box>
-        )}
-
-        {searchQuery && filteredUsers.length === 0 && (
-          <Box className="text-center p-3 mb-3">
-            <Typography
-              className={lightTheme ? "text-gray-500" : "text-gray-400"}
-            >
-              No users found
-            </Typography>
+            ) : searchError ? (
+              <div className="text-center py-4 text-red-500 bg-red-50 rounded-lg">
+                {searchError}
+              </div>
+            ) : filteredUsers.length === 0 ? (
+              <div className="text-center py-4 text-gray-500">
+                No users found matching "{searchQuery}"
+              </div>
+            ) : (
+              filteredUsers.map((user) => (
+                <div
+                  key={user._id}
+                  className={`flex items-center justify-between p-3 mb-1 rounded-lg cursor-pointer hover:bg-gray-200 ${
+                    lightTheme ? "" : "hover:bg-gray-800 !bg-[#181C14]"
+                  }`}
+                  onClick={() => handleAddUser(user)}
+                >
+                  <div className="flex items-center">
+                    <Avatar
+                      src={user.pic}
+                      alt={user.name}
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        border: `2px solid ${
+                          lightTheme ? "#e5e7eb" : "#4b5563"
+                        }`,
+                      }}
+                    />
+                    <div className="ml-3">
+                      <Typography
+                        className={`font-medium ${
+                          lightTheme ? "" : "!text-white"
+                        }`}
+                      >
+                        {user.name}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        className={`text-gray-500 ${
+                          lightTheme ? "" : "!text-gray-400"
+                        }`}
+                      >
+                        @{user.username}
+                      </Typography>
+                    </div>
+                  </div>
+                  <Add
+                    className={`${
+                      lightTheme ? "" : "text-white"
+                    } hover:text-blue-500`}
+                  />
+                </div>
+              ))
+            )}
           </Box>
         )}
 

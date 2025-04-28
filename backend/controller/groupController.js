@@ -83,14 +83,23 @@ const createGroup = asyncHandler(async (req, res) => {
 
 const getGroupsForUser = asyncHandler(async (req, res) => {
   try {
-    const userId = req.user._id; // You can get this from your auth middleware
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
 
-    const groups = await groupChatModel.find({ members: userId });
+    const userId = req.user._id;
+    const groups = await groupChatModel
+      .find({
+        members: userId,
+      })
+      .populate("members", "name pic email")
+      .populate("admin", "name pic email")
+      .sort({ updatedAt: -1 });
 
     res.status(200).json(groups);
   } catch (error) {
     console.error("Failed to get user groups:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Failed to fetch groups" });
   }
 });
 

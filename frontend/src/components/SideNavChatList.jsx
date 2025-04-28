@@ -13,7 +13,13 @@ import ChatIcon from "@mui/icons-material/Chat";
 import SearchIcon from "@mui/icons-material/Search";
 import SunnyIcon from "@mui/icons-material/Sunny";
 import CloseIcon from "@mui/icons-material/Close";
-import { IconButton, Tooltip, Badge, Avatar } from "@mui/material";
+import {
+  IconButton,
+  Tooltip,
+  Badge,
+  Avatar,
+  CircularProgress,
+} from "@mui/material";
 import ConversationsItem from "./ConversationItem";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
@@ -35,6 +41,7 @@ const SideNavChatList = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState(null);
 
   const socket = useRef();
 
@@ -58,49 +65,10 @@ const SideNavChatList = () => {
     fetchChatList();
   }, []);
 
-  // useEffect(() => {
-  //   const fetchUsers = async () => {
-  //     try {
-  //       const res = await fetch(
-  //         `${api.defaults.baseURL}/user/searchUsers?search=${search}`,
-  //         {
-  //           credentials: "include",
-  //           headers: {
-  //             "Content-Type": "application/json",
-  //           },
-  //         }
-  //       );
-
-  //       if (!res.ok) {
-  //         if (res.status === 401) {
-  //           console.error("User is not authenticated");
-  //           setData([]);
-  //           return;
-  //         }
-  //         throw new Error("Failed to fetch users");
-  //       }
-  //       const result = await res.json();
-  //       setData(result);
-  //     } catch (error) {
-  //       console.error("Failed to fetch users:", error);
-  //       setData([]);
-  //     }
-  //   };
-
-  //   const debounceTimer = setTimeout(() => {
-  //     if (search.trim() !== "") {
-  //       fetchUsers();
-  //     } else {
-  //       setData([]);
-  //     }
-  //   }, 300);
-
-  //   return () => clearTimeout(debounceTimer);
-  // }, [search]);
-
   useEffect(() => {
     const fetchUsers = async () => {
-      setIsSearching(true); // Start searching
+      setIsSearching(true);
+      setSearchError(null);
       try {
         const res = await fetch(
           `${api.defaults.baseURL}/user/searchUsers?search=${search}`,
@@ -114,7 +82,7 @@ const SideNavChatList = () => {
 
         if (!res.ok) {
           if (res.status === 401) {
-            console.error("User is not authenticated");
+            setSearchError("Please login to search users");
             setData([]);
             return;
           }
@@ -125,9 +93,10 @@ const SideNavChatList = () => {
         setData(result);
       } catch (error) {
         console.error("Failed to fetch users:", error);
+        setSearchError("Failed to search users. Please try again.");
         setData([]);
       } finally {
-        setIsSearching(false); // End searching
+        setIsSearching(false);
       }
     };
 
@@ -136,6 +105,7 @@ const SideNavChatList = () => {
         fetchUsers();
       } else {
         setData([]);
+        setSearchError(null);
       }
     }, 300);
 
@@ -401,150 +371,176 @@ const SideNavChatList = () => {
               </div>
             )}
 
-            {data.length ? (
-              data.map((item, index) => (
-                <ConversationsItem
-                  key={index}
-                  data={item}
-                  lightTheam={lightTheme}
-                  onlineUsers={onlineUsers}
-                  onSelect={async () => {
-                    clearSearch();
-                    navigate(`chat/${item._id}`);
-                    await addUserToChatList(item._id);
-                    fetchChatList();
-                  }}
-                />
-              ))
-            ) : (
-              <>
-                {/* {search.trim() !== "" && (
-                  <div className="text-center py-4 text-gray-500">
-                    No users match your search
+            {search.trim() !== "" && (
+              <div className="flex flex-col gap-2">
+                {isSearching ? (
+                  <div className="flex items-center justify-center py-4">
+                    <CircularProgress size={24} className="text-blue-500" />
+                    <span className="ml-2 text-gray-500">Searching...</span>
                   </div>
-                )} */}
-
-                {search.trim() !== "" && (
-                  <div className="text-center py-4 text-gray-500">
-                    {isSearching
-                      ? "Searching..."
-                      : data.length === 0
-                      ? "No users match your search"
-                      : data.map((user) => (
-                          <div key={user._id}>{user.username}</div>
-                        ))}
+                ) : searchError ? (
+                  <div className="text-center py-4 text-red-500 bg-red-50 rounded-lg">
+                    {searchError}
                   </div>
-                )}
-
-                {search.trim() === "" && (
-                  <>
-                    {chatList.length > 0 ? (
-                      <>
-                        <div
-                          className={`px-2 py-1 mb-2 text-sm font-medium ${
-                            lightTheme ? "text-gray-500" : "text-gray-300"
+                ) : data.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500">
+                    No users found matching "{search}"
+                  </div>
+                ) : (
+                  data.map((user) => (
+                    <div
+                      key={user._id}
+                      onClick={() => {
+                        clearSearch();
+                        navigate(`/app/chat/${user._id}`);
+                        addUserToChatList(user._id);
+                      }}
+                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-300 hover:bg-gray-100 ${
+                        lightTheme ? "hover:bg-gray-100" : "hover:bg-gray-800"
+                      }`}
+                    >
+                      <Avatar
+                        src={user.pic}
+                        alt={user.name}
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          border: `2px solid ${
+                            onlineUsers.includes(user._id)
+                              ? "#10B981"
+                              : lightTheme
+                              ? "#e5e7eb"
+                              : "#4b5563"
+                          }`,
+                        }}
+                      />
+                      <div className="flex flex-col">
+                        <span
+                          className={`font-medium ${
+                            lightTheme ? "text-gray-800" : "text-white"
                           }`}
                         >
-                          Recent Chats
-                        </div>
-                        <div className="flex flex-col gap-y-3 px-4 py-3">
-                          {chatList.map((item, index) => (
-                            <div
-                              key={index}
-                              onClick={() => {
-                                navigate(`/app/chat/${item._id}`);
-                              }}
-                              className={`flex items-center justify-between gap-4 p-4 rounded-xl cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md hover:scale-[1.02] ${
-                                lightTheme
-                                  ? "bg-white hover:bg-gray-100"
-                                  : "bg-[#1E1E1E] hover:!bg-[#2A2D27]"
-                              }`}
-                            >
-                              <div className="flex items-center gap-4">
-                                <div className="relative">
-                                  <Avatar
-                                    alt={item.name}
-                                    src={item.pic}
-                                    sx={{
-                                      width: 50,
-                                      height: 50,
-                                      border: `2px solid ${
-                                        lightTheme ? "#e5e7eb" : "#4b5563"
-                                      }`,
-                                    }}
-                                  />
-                                  <span
-                                    className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full ${
-                                      onlineUsers.includes(item._id)
-                                        ? "bg-green-400"
-                                        : "bg-gray-400"
-                                    } border-2 ${
-                                      lightTheme
-                                        ? "border-white"
-                                        : "border-[#1E1E1E]"
-                                    }`}
-                                  ></span>
-                                </div>
-                                <div>
-                                  <h1
-                                    className={`text-base font-semibold ${
-                                      lightTheme
-                                        ? "text-gray-800"
-                                        : "text-white"
-                                    }`}
-                                  >
-                                    {item.name}
-                                  </h1>
-                                  <p
-                                    className={`text-xs ${
-                                      onlineUsers.includes(item._id)
-                                        ? lightTheme
-                                          ? "text-green-600"
-                                          : "text-green-400"
-                                        : lightTheme
-                                        ? "text-gray-500"
-                                        : "text-gray-400"
-                                    }`}
-                                  >
-                                    {onlineUsers.includes(item._id)
-                                      ? "Online"
-                                      : "Offline"}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-full py-10 text-center">
-                        <Avatar
-                          className={`mb-4 ${
-                            lightTheme
-                              ? "bg-blue-100 text-blue-500"
-                              : "bg-gray-700 text-gray-300"
-                          }`}
-                          sx={{ width: 60, height: 60 }}
-                        >
-                          <ChatIcon fontSize="large" />
-                        </Avatar>
-                        <div
-                          className={`text-lg font-medium ${
-                            lightTheme ? "text-gray-700" : "text-gray-300"
-                          }`}
-                        >
-                          No chats available
-                        </div>
-                        <p
-                          className={`text-sm mt-2 ${
+                          {user.name}
+                        </span>
+                        <span
+                          className={`text-sm ${
                             lightTheme ? "text-gray-500" : "text-gray-400"
                           }`}
                         >
-                          Search for users to start a conversation
-                        </p>
+                          @{user.username}
+                        </span>
                       </div>
-                    )}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            {search.trim() === "" && (
+              <>
+                {chatList.length > 0 ? (
+                  <>
+                    <div
+                      className={`px-2 py-1 mb-2 text-sm font-medium ${
+                        lightTheme ? "text-gray-500" : "text-gray-300"
+                      }`}
+                    >
+                      Recent Chats
+                    </div>
+                    <div className="flex flex-col gap-y-3 px-4 py-3">
+                      {chatList.map((item, index) => (
+                        <div
+                          key={index}
+                          onClick={() => {
+                            navigate(`/app/chat/${item._id}`);
+                          }}
+                          className={`flex items-center justify-between gap-4 p-4 rounded-xl cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md hover:scale-[1.02] ${
+                            lightTheme
+                              ? "bg-white hover:bg-gray-100"
+                              : "bg-[#1E1E1E] hover:!bg-[#2A2D27]"
+                          }`}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="relative">
+                              <Avatar
+                                alt={item.name}
+                                src={item.pic}
+                                sx={{
+                                  width: 50,
+                                  height: 50,
+                                  border: `2px solid ${
+                                    lightTheme ? "#e5e7eb" : "#4b5563"
+                                  }`,
+                                }}
+                              />
+                              <span
+                                className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full ${
+                                  onlineUsers.includes(item._id)
+                                    ? "bg-green-400"
+                                    : "bg-gray-400"
+                                } border-2 ${
+                                  lightTheme
+                                    ? "border-white"
+                                    : "border-[#1E1E1E]"
+                                }`}
+                              ></span>
+                            </div>
+                            <div>
+                              <h1
+                                className={`text-base font-semibold ${
+                                  lightTheme ? "text-gray-800" : "text-white"
+                                }`}
+                              >
+                                {item.name}
+                              </h1>
+                              <p
+                                className={`text-xs ${
+                                  onlineUsers.includes(item._id)
+                                    ? lightTheme
+                                      ? "text-green-600"
+                                      : "text-green-400"
+                                    : lightTheme
+                                    ? "text-gray-500"
+                                    : "text-gray-400"
+                                }`}
+                              >
+                                {onlineUsers.includes(item._id)
+                                  ? "Online"
+                                  : "Offline"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full py-10 text-center">
+                    <Avatar
+                      className={`mb-4 ${
+                        lightTheme
+                          ? "bg-blue-100 text-blue-500"
+                          : "bg-gray-700 text-gray-300"
+                      }`}
+                      sx={{ width: 60, height: 60 }}
+                    >
+                      <ChatIcon fontSize="large" />
+                    </Avatar>
+                    <div
+                      className={`text-lg font-medium ${
+                        lightTheme ? "text-gray-700" : "text-gray-300"
+                      }`}
+                    >
+                      No chats available
+                    </div>
+                    <p
+                      className={`text-sm mt-2 ${
+                        lightTheme ? "text-gray-500" : "text-gray-400"
+                      }`}
+                    >
+                      Search for users to start a conversation
+                    </p>
+                  </div>
                 )}
               </>
             )}

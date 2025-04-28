@@ -32,6 +32,7 @@ import {
   ListItemAvatar,
   ListItemText,
   ListItemSecondaryAction,
+  CircularProgress,
 } from "@mui/material";
 import {
   Search,
@@ -80,6 +81,8 @@ const GroupChatArea = () => {
   const [memberToMakeAdmin, setMemberToMakeAdmin] = useState(null);
   const [openLeaveGroupConfirmDialog, setOpenLeaveGroupConfirmDialog] =
     useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState(null);
   const navigate = useNavigate();
 
   // Initialize socket connection
@@ -223,6 +226,15 @@ const GroupChatArea = () => {
   }, [searchQuery]);
 
   const fetchUsers = async () => {
+    if (!searchQuery.trim()) {
+      setFilteredUsers([]);
+      setSearchError(null);
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchError(null);
+
     try {
       const res = await fetch(
         `${api.defaults.baseURL}/user/searchUsers?search=${searchQuery}`,
@@ -234,30 +246,53 @@ const GroupChatArea = () => {
         }
       );
 
-      if (res.ok) {
-        const result = await res.json();
-        // Filter out users who are already members of the group
-        const filteredResult = result.filter(
-          (user) =>
-            !groupDetail.members?.some((member) => member._id === user._id)
-        );
-        setFilteredUsers(filteredResult);
-      } else {
-        console.error("Failed to fetch users");
-        setFilteredUsers([]);
+      if (!res.ok) {
+        if (res.status === 401) {
+          setSearchError("Please login to search users");
+          setFilteredUsers([]);
+          return;
+        }
+        throw new Error("Failed to fetch users");
       }
+
+      const result = await res.json();
+      // Filter out users who are already members of the group
+      const filteredResult = result.filter(
+        (user) =>
+          !groupDetail.members?.some((member) => member._id === user._id)
+      );
+      setFilteredUsers(filteredResult);
     } catch (error) {
-      console.error("Error searching users:", error);
+      console.error("Failed to fetch users:", error);
+      setSearchError("Failed to search users. Please try again.");
       setFilteredUsers([]);
+    } finally {
+      setIsSearching(false);
     }
   };
 
   const handleAddUser = (user) => {
+    // Check if user is already selected
     if (selectedUsers.some((u) => u._id === user._id)) {
+      toast.error("User already selected");
       return;
     }
+
+    // Check if user is already a member of the group
+    if (groupDetail.members?.some((member) => member._id === user._id)) {
+      toast.error("User is already a member of the group");
+      return;
+    }
+
+    // Check if maximum members limit is reached
+    if (selectedUsers.length >= 10) {
+      toast.error("You can only add up to 10 members at once");
+      return;
+    }
+
+    // Add user to selected users
     setSelectedUsers([...selectedUsers, user]);
-    setSearchQuery("");
+    setSearchQuery(""); // Clear search after selection
   };
 
   const handleRemoveSelectedUser = (userId) => {
@@ -271,8 +306,6 @@ const GroupChatArea = () => {
         addList: selectedUsers.map((user) => user._id),
       };
 
-      console.log("Sending data to backend:", dataToSend);
-
       const { data } = await api.post("/group/addNewMember", dataToSend, {
         withCredentials: true,
       });
@@ -280,10 +313,12 @@ const GroupChatArea = () => {
       // Show success message
       toast.success(data.message || "Members added successfully");
 
+      // Close dialog and reset state
       setOpenAddMemberDialog(false);
       setSelectedUsers([]);
       setSearchQuery("");
 
+      // Refresh group members list
       const { data: memberData } = await api.get(
         `/group/groupMemberList/${id}`,
         {
@@ -292,29 +327,15 @@ const GroupChatArea = () => {
       );
       setMemberList(memberData.members);
       setAdmins(memberData.admin);
-      try {
-        const { data } = await api.get(`/group/groupDetails/${id}`, {
-          withCredentials: true,
-        });
-        setGroupDetail(data);
-        console.log("Group details:", data);
-      } catch (error) {
-        console.error("Error fetching group details:", error);
-      }
+
+      // Refresh group details
+      const { data: groupData } = await api.get(`/group/groupDetails/${id}`, {
+        withCredentials: true,
+      });
+      setGroupDetail(groupData);
     } catch (error) {
       console.error("Error adding members to group:", error);
-
-      // Show error message from backend if available
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.success("Added successfully");
-      }
-
-      // Close dialog and reset selection even if there's an error
-      setOpenAddMemberDialog(false);
-      setSelectedUsers([]);
-      setSearchQuery("");
+      toast.error(error.response?.data?.message || "Failed to add members");
     }
   };
 
@@ -426,6 +447,32 @@ const GroupChatArea = () => {
   const handleSendMessage = async () => {
     if (!messageToBeSend.trim()) return;
 
+    // Create a temporary message object
+    const tempMessage = {
+      text: messageToBeSend,
+      senderId: loggedInUser,
+      createdAt: new Date().toISOString(),
+    };
+
+    // Update local state immediately
+    setAllMessages((prev) => [...prev, tempMessage]);
+    setMessageToBeSend("");
+    setShowEmojiPicker(false);
+
+    // Send stop typing event
+    socket.current.emit("groupTyping", {
+      senderId: loggedInUser._id,
+      groupId: id,
+      isTyping: false,
+    });
+
+    // Scroll to bottom after sending message
+    setTimeout(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100);
+
     try {
       const { data } = await api.post(
         `/group/sendMessage/${id}`,
@@ -444,26 +491,17 @@ const GroupChatArea = () => {
         senderId: loggedInUser._id,
       });
 
-      // Update local state
-      setAllMessages((prev) => [...prev, data]);
-      setMessageToBeSend("");
-      setShowEmojiPicker(false);
-
-      // Send stop typing event
-      socket.current.emit("groupTyping", {
-        senderId: loggedInUser._id,
-        groupId: id,
-        isTyping: false,
-      });
-
-      // Scroll to bottom after sending message
-      setTimeout(() => {
-        if (scrollRef.current) {
-          scrollRef.current.scrollIntoView({ behavior: "smooth" });
-        }
-      }, 100);
+      // Update the temporary message with the actual message data from the server
+      setAllMessages((prev) =>
+        prev.map((msg) =>
+          msg === tempMessage ? { ...data, senderId: loggedInUser } : msg
+        )
+      );
     } catch (error) {
       console.error("Failed to send message:", error);
+      // Remove the temporary message if the API call fails
+      setAllMessages((prev) => prev.filter((msg) => msg !== tempMessage));
+      toast.error("Failed to send message. Please try again.");
     }
   };
 
@@ -1413,133 +1451,138 @@ const GroupChatArea = () => {
         </div>
       </div>
 
-      <Dialog
-        open={openAddMemberDialog}
-        onClose={() => setOpenAddMemberDialog(false)}
-        fullWidth
-        maxWidth="xs"
-        PaperProps={{
-          className: lightTheme ? "" : "bg-[#3C3D37] text-white",
-        }}
-      >
-        <DialogTitle>Add Members to Group</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Search Users"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            fullWidth
-            margin="dense"
-            placeholder="Search by name or email"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search />
-                </InputAdornment>
-              ),
-              className: lightTheme ? "" : "text-white",
-            }}
-            sx={{
-              mb: 3,
-              "& .MuiOutlinedInput-root": { borderRadius: "12px" },
-              "& .MuiOutlinedInput-input": { padding: "14px" },
-              "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: lightTheme ? undefined : "rgba(255,255,255,0.3)",
-              },
-            }}
-          />
+      {openAddMemberDialog && (
+        <Dialog
+          open={openAddMemberDialog}
+          onClose={() => setOpenAddMemberDialog(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Add Members</DialogTitle>
+          <DialogContent>
+            <TextField
+              fullWidth
+              label="Search Users"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              margin="normal"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                ),
+              }}
+            />
 
-          {selectedUsers.length > 0 && (
-            <Box className="mb-3">
-              <Typography
-                variant="body2"
-                className={`mb-2 ${
-                  lightTheme ? "text-gray-600" : "text-gray-300"
-                }`}
-              >
-                Selected Users ({selectedUsers.length})
-              </Typography>
-              <div className="flex flex-wrap gap-2">
-                {selectedUsers.map((user) => (
-                  <Chip
-                    key={user._id}
-                    avatar={<Avatar alt={user.name} src={user.pic} />}
-                    label={user.name}
-                    onDelete={() => handleRemoveSelectedUser(user._id)}
-                    sx={{ borderRadius: "8px", padding: "2px 0" }}
-                  />
-                ))}
-              </div>
-            </Box>
-          )}
-
-          {searchQuery && filteredUsers.length > 0 && (
-            <Box
-              className={`max-h-52 overflow-y-auto mb-2 rounded-xl p-2 ${
-                lightTheme ? "bg-gray-50" : "bg-[#181C14]"
-              }`}
-            >
-              {filteredUsers.map((user) => (
-                <div
-                  key={user._id}
-                  className={`flex items-center justify-between p-3 mb-1 rounded-lg cursor-pointer ${
-                    lightTheme ? "hover:bg-gray-200" : "hover:bg-gray-800"
+            {/* Selected Users Section */}
+            {selectedUsers.length > 0 && (
+              <Box className="mb-4">
+                <Typography
+                  variant="body2"
+                  className={`mb-2 ${
+                    lightTheme ? "text-gray-600" : "text-gray-300"
                   }`}
-                  onClick={() => handleAddUser(user)}
                 >
-                  <div className="flex items-center">
-                    <Avatar className="mr-2 w-8 h-8">
-                      <img
-                        src={user.pic || "/profile.webp"}
-                        alt={user.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </Avatar>
-                    <div>
-                      <Typography
-                        className={
-                          lightTheme ? "font-medium" : "font-medium text-white"
-                        }
-                      >
-                        {user.name}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        className={
-                          lightTheme ? "text-gray-500" : "text-gray-400"
-                        }
-                      >
-                        @{user.username || user.email}
-                      </Typography>
-                    </div>
-                  </div>
-                  <Add className={lightTheme ? "" : "text-white"} />
+                  Selected Users ({selectedUsers.length})
+                </Typography>
+                <div className="flex flex-wrap gap-2">
+                  {selectedUsers.map((user) => (
+                    <Chip
+                      key={user._id}
+                      avatar={<Avatar alt={user.name} src={user.pic} />}
+                      label={user.name}
+                      onDelete={() => handleRemoveSelectedUser(user._id)}
+                      sx={{ borderRadius: "8px", padding: "2px 0" }}
+                    />
+                  ))}
                 </div>
-              ))}
-            </Box>
-          )}
+              </Box>
+            )}
 
-          {searchQuery && filteredUsers.length === 0 && (
-            <Box className="text-center p-3 mb-2">
-              <Typography
-                className={lightTheme ? "text-gray-500" : "text-gray-400"}
-              >
-                No users found
-              </Typography>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenAddMemberDialog(false)}>Cancel</Button>
-          <Button
-            onClick={handleAddMembersToGroup}
-            variant="contained"
-            disabled={selectedUsers.length === 0}
-          >
-            Add to Group
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <div className="mt-4">
+              {isSearching ? (
+                <div className="flex items-center justify-center py-4">
+                  <CircularProgress size={24} className="text-blue-500" />
+                  <span className="ml-2 text-gray-500">Searching...</span>
+                </div>
+              ) : searchError ? (
+                <div className="text-center py-4 text-red-500 bg-red-50 rounded-lg">
+                  {searchError}
+                </div>
+              ) : filteredUsers.length === 0 ? (
+                <div className="text-center py-4 text-gray-500">
+                  {searchQuery.trim() ? (
+                    <>No users found matching "{searchQuery}"</>
+                  ) : (
+                    "Start typing to search for users"
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {filteredUsers.map((user) => (
+                    <div
+                      key={user._id}
+                      className={`flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-gray-100 ${
+                        lightTheme ? "" : "hover:bg-gray-800"
+                      }`}
+                      onClick={() => handleAddUser(user)}
+                    >
+                      <div className="flex items-center">
+                        <Avatar
+                          src={user.pic}
+                          alt={user.name}
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            border: `2px solid ${
+                              lightTheme ? "#e5e7eb" : "#4b5563"
+                            }`,
+                          }}
+                        />
+                        <div className="ml-3">
+                          <Typography
+                            className={`font-medium ${
+                              lightTheme ? "text-gray-800" : "text-white"
+                            }`}
+                          >
+                            {user.name}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            className={`text-gray-500 ${
+                              lightTheme ? "" : "text-gray-400"
+                            }`}
+                          >
+                            @{user.username}
+                          </Typography>
+                        </div>
+                      </div>
+                      <Add
+                        className={`${
+                          lightTheme ? "text-gray-600" : "text-gray-300"
+                        } hover:text-blue-500`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenAddMemberDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddMembersToGroup}
+              variant="contained"
+              disabled={selectedUsers.length === 0}
+            >
+              Add Members
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
 
       <Dialog
         open={openRemoveConfirmDialog}
