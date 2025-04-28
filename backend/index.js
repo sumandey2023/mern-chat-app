@@ -11,16 +11,24 @@ const upload = multer({ storage: multer.memoryStorage() });
 const http = require("http");
 const { Server } = require("socket.io");
 // const BASE_URL = "http://localhost:5173";
-const BASE_URL = "https://adda-pi.vercel.app/";
+const BASE_URL = "https://adda-pi.vercel.app";
 dotenv.config();
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 
 // Initialize Socket.io with CORS configuration
+// const io = new Server(server, {
+//   cors: {
+//     origin: `${BASE_URL}`, // frontend URL
+//     methods: ["GET", "POST"],
+//     credentials: true,
+//   },
+// });
+
 const io = new Server(server, {
   cors: {
-    origin: `${BASE_URL}`, // frontend URL
+    origin: BASE_URL, // Remove the trailing slash
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -28,11 +36,17 @@ const io = new Server(server, {
 
 db();
 
-// ✅ Enable CORS with credentials
+// app.use(
+//   cors({
+//     origin: `${BASE_URL}`, // frontend URL
+//     credentials: true, // allow cookies
+//   })
+// );
+
 app.use(
   cors({
-    origin: `${BASE_URL}`, // frontend URL
-    credentials: true, // allow cookies
+    origin: BASE_URL, // Remove the trailing slash
+    credentials: true,
   })
 );
 
