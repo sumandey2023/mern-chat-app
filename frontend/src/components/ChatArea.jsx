@@ -298,9 +298,14 @@ const ChatArea = () => {
 
     // Focus on input and set cursor position after emoji
     setTimeout(() => {
-      inputRef.current.focus();
-      const newCursorPosition = cursorPosition + emoji.length;
-      inputRef.current.setSelectionRange(newCursorPosition, newCursorPosition);
+      if (inputRef.current) {
+        inputRef.current.focus();
+        const newCursorPosition = cursorPosition + emoji.length;
+        inputRef.current.setSelectionRange(
+          newCursorPosition,
+          newCursorPosition
+        );
+      }
     }, 10);
   };
 
@@ -416,18 +421,18 @@ const ChatArea = () => {
         theme={lightTheme ? "light" : "dark"}
       />
 
-      <div
-        className={`flex flex-col h-full rounded-2xl shadow-lg overflow-hidden transition-colors duration-300 ${
-          lightTheme ? "bg-white" : "bg-[#3C3D37]"
-        } transition-all duration-300`}
-      >
-        {/* Header */}
+      {isSmallScreen && (
+        // <div
+        //   className={`flex items-center justify-between px-4 py-3 border-b transition-colors duration-300 ${
+        //     lightTheme
+        //       ? "bg-white border-gray-200"
+        //       : "bg-[#2A2D27] border-gray-700"
+        //   } transition-all duration-300 sticky top-0 z-10`}
+        // >
         <div
-          className={`flex items-center justify-between px-4 py-3 border-b transition-colors duration-300 ${
-            lightTheme
-              ? "bg-white border-gray-200"
-              : "bg-[#2A2D27] border-gray-700"
-          } transition-all duration-300 sticky top-0 z-10`}
+          className={` h-16 w-full flex px-4 py-3 fixed items-center top-0 left-0 transition-colors duration-300 ${
+            lightTheme ? "bg-white" : "bg-[#3C3D37]"
+          } transition-all duration-300  justify-between`}
         >
           <div className="flex items-center">
             <div className="relative">
@@ -498,10 +503,98 @@ const ChatArea = () => {
             </Tooltip>
           </div>
         </div>
+      )}
 
-        <div className="flex flex-1 overflow-hidden relative">
+      <div
+        className={`flex flex-col h-full rounded-2xl shadow-lg overflow-hidden transition-colors duration-300 ${
+          lightTheme ? "bg-white" : "bg-[#3C3D37]"
+        } transition-all duration-300`}
+      >
+        {/* Header */}
+        {!isSmallScreen && (
+          <div
+            className={`flex items-center justify-between px-4 py-3 border-b transition-colors duration-300 ${
+              lightTheme
+                ? "bg-white border-gray-200"
+                : "bg-[#2A2D27] border-gray-700"
+            } transition-all duration-300 sticky top-0 z-10`}
+          >
+            <div className="flex items-center">
+              <div className="relative">
+                <Avatar
+                  alt={receiverData?.name || "User"}
+                  src={receiverData?.pic}
+                  sx={{
+                    width: 50,
+                    height: 50,
+                    border: `2px solid ${
+                      lightTheme ? "#e5e7eb" : "#4b5563"
+                    } transition-all duration-300`,
+                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                  }}
+                />
+                <span
+                  className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full ${
+                    onlineUsers.includes(receiverData._id)
+                      ? "bg-green-400"
+                      : "bg-gray-400"
+                  } border-2 ${
+                    lightTheme ? "border-white" : "border-[#2A2D27]"
+                  } transition-all duration-300`}
+                ></span>
+              </div>
+
+              <div className="ml-3 flex-grow">
+                <h1
+                  className={`text-base lg:text-lg font-semibold ${
+                    lightTheme ? "text-gray-800" : "text-white"
+                  } transition-all duration-300`}
+                >
+                  {receiverData.name || "Loading..."}
+                </h1>
+                <p
+                  className={`text-xs ${
+                    onlineUsers.includes(receiverData._id)
+                      ? lightTheme
+                        ? "text-green-600"
+                        : "text-green-400"
+                      : lightTheme
+                      ? "text-gray-500"
+                      : "text-gray-400"
+                  } transition-all duration-300`}
+                >
+                  {onlineUsers.includes(receiverData._id)
+                    ? "Online"
+                    : "Offline"}
+                </p>
+              </div>
+            </div>
+
+            {/* User Info Toggle Button */}
+            <div className="flex items-center">
+              <Tooltip title="User Info">
+                <IconButton
+                  onClick={() => setShowUserInfo(!showUserInfo)}
+                  className={`${
+                    showUserInfo
+                      ? lightTheme
+                        ? "bg-gray-200"
+                        : "bg-[#4A4B45]"
+                      : ""
+                  }`}
+                >
+                  <InfoIcon
+                    className={lightTheme ? "text-gray-700" : "text-gray-300"}
+                  />
+                </IconButton>
+              </Tooltip>
+            </div>
+          </div>
+        )}
+
+        <div className="flex flex-1  overflow-hidden relative">
           {/* Main chat area */}
-          <div className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex  flex-col flex-1 overflow-hidden">
             {/* Chat Messages Area with Fixed Scrollbar */}
             <div
               className={`flex-1 p-3 lg:p-4 overflow-y-auto chat-container scroll-smooth no-scrollbar ${
@@ -586,13 +679,13 @@ const ChatArea = () => {
 
             {/* Input area */}
             <div
-              className={`px-3 py-2 border-t transition-colors duration-300 ${
+              className={`px-2 sm:px-3 py-2 border-t transition-colors duration-300 ${
                 lightTheme
                   ? "bg-white border-gray-200"
                   : "bg-[#2A2D27] border-gray-700"
               } transition-all duration-300 sticky bottom-0 z-10`}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <Tooltip title="Attach File">
                   <IconButton
                     size="small"
@@ -667,7 +760,7 @@ const ChatArea = () => {
                             theme={lightTheme ? "light" : "dark"}
                             searchDisabled
                             skinTonesDisabled
-                            height={350}
+                            height={isSmallScreen ? 300 : 350}
                             width={isSmallScreen ? 250 : 320}
                           />
                         </div>
@@ -678,6 +771,7 @@ const ChatArea = () => {
 
                 <div className="relative flex-1">
                   <input
+                    ref={inputRef}
                     type="text"
                     value={messageToBeSend}
                     onChange={handleTyping}
@@ -688,7 +782,7 @@ const ChatArea = () => {
                         handleSendMessage();
                       }
                     }}
-                    className={`flex-1 w-full p-3 rounded-full outline-none text-base lg:text-lg transition-all ${
+                    className={`flex-1 w-full p-2 sm:p-3 rounded-full outline-none text-sm sm:text-base lg:text-lg transition-all ${
                       lightTheme
                         ? "bg-gray-100 text-gray-800 focus:bg-gray-200 focus:shadow-inner"
                         : "bg-[#3C3D37] text-white focus:bg-[#444440] focus:shadow-inner"
