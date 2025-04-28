@@ -97,7 +97,9 @@ const SideNavChatList = () => {
   }, [search]);
 
   useEffect(() => {
-    socket.current = io(api.defaults.baseURL);
+    socket.current = io(api.defaults.baseURL, {
+      withCredentials: true,
+    });
 
     // Listen for online users updates
     socket.current.on("getUsers", (users) => {

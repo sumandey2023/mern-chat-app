@@ -13,6 +13,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import AlternateEmailIcon from "@mui/icons-material/AlternateEmail";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import ChatIcon from "@mui/icons-material/Chat";
+
 import {
   Avatar,
   IconButton,
@@ -53,7 +54,9 @@ const ChatArea = () => {
 
   // Initialize socket connection
   useEffect(() => {
-    socket.current = io(BASE_URL);
+    socket.current = io(api.defaults.baseURL, {
+      withCredentials: true,
+    });
 
     // Listen for events
     socket.current.on("receiveMessage", (data) => {

@@ -84,7 +84,9 @@ const GroupChatArea = () => {
 
   // Initialize socket connection
   useEffect(() => {
-    socket.current = io(BASE_URL);
+    socket.current = io(api.defaults.baseURL, {
+      withCredentials: true,
+    });
 
     // Join group room
     socket.current.emit("joinGroup", id);
@@ -223,7 +225,7 @@ const GroupChatArea = () => {
   const fetchUsers = async () => {
     try {
       const res = await fetch(
-        `${BASE_URL}/user/searchUsers?search=${searchQuery}`,
+        `${api.defaults.baseURL}/user/searchUsers?search=${searchQuery}`,
         {
           credentials: "include",
           headers: {

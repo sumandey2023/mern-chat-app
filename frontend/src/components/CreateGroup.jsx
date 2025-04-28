@@ -72,7 +72,7 @@ const CreateGroup = () => {
 
       try {
         const res = await fetch(
-          `${BASE_URL}/user/searchUsers?search=${searchQuery}`,
+          `${api.defaults.baseURL}/user/searchUsers?search=${searchQuery}`,
           {
             credentials: "include",
             headers: {
