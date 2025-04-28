@@ -28,7 +28,7 @@ const PORT = process.env.PORT || 5000;
 
 const io = new Server(server, {
   cors: {
-    origin: BASE_URL, // Remove the trailing slash
+    origin: BASE_URL,
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -36,16 +36,10 @@ const io = new Server(server, {
 
 db();
 
-// app.use(
-//   cors({
-//     origin: `${BASE_URL}`, // frontend URL
-//     credentials: true, // allow cookies
-//   })
-// );
-
+// CORS configuration
 app.use(
   cors({
-    origin: "https://adda-pi.vercel.app",
+    origin: BASE_URL,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],

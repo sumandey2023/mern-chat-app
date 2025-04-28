@@ -40,7 +40,6 @@ const loginController = asyncHandler(async (req, res) => {
     sameSite: "none",
     maxAge: 24 * 60 * 60 * 1000,
     path: "/",
-    domain: ".vercel.app",
   });
 
   return res.status(200).json({
@@ -172,7 +171,6 @@ const signupController = asyncHandler(async (req, res) => {
     sameSite: "none",
     maxAge: 24 * 60 * 60 * 1000,
     path: "/",
-    domain: ".vercel.app",
   });
 
   return res.status(201).json({
@@ -195,7 +193,6 @@ const logOutController = asyncHandler(async (req, res) => {
     secure: true,
     sameSite: "none",
     path: "/",
-    domain: ".vercel.app",
   });
 
   // Then set an expired cookie as a backup method

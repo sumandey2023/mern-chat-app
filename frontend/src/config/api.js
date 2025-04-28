@@ -15,7 +15,8 @@ const api = axios.create({
 // Add request interceptor to handle errors
 api.interceptors.request.use(
   (config) => {
-    // You can add any request modifications here
+    // Add credentials to all requests
+    config.withCredentials = true;
     return config;
   },
   (error) => {
