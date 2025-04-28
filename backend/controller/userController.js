@@ -36,9 +36,11 @@ const loginController = asyncHandler(async (req, res) => {
 
   res.cookie("token", token, {
     httpOnly: true,
-    secure: false, // set to true in production
-    sameSite: "lax", // or "strict"
+    secure: true,
+    sameSite: "none",
     maxAge: 24 * 60 * 60 * 1000,
+    path: "/",
+    domain: ".vercel.app",
   });
 
   return res.status(200).json({
@@ -166,9 +168,11 @@ const signupController = asyncHandler(async (req, res) => {
 
   res.cookie("token", token, {
     httpOnly: true,
-    secure: false,
-    sameSite: "lax",
+    secure: true,
+    sameSite: "none",
     maxAge: 24 * 60 * 60 * 1000,
+    path: "/",
+    domain: ".vercel.app",
   });
 
   return res.status(201).json({
@@ -188,9 +192,10 @@ const logOutController = asyncHandler(async (req, res) => {
   // First, clear the cookie using clearCookie
   res.clearCookie("token", {
     httpOnly: true,
-    secure: false,
-    sameSite: "lax",
+    secure: true,
+    sameSite: "none",
     path: "/",
+    domain: ".vercel.app",
   });
 
   // Then set an expired cookie as a backup method

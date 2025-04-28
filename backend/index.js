@@ -45,8 +45,10 @@ db();
 
 app.use(
   cors({
-    origin: BASE_URL, // Remove the trailing slash
+    origin: "https://adda-pi.vercel.app",
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
