@@ -34,6 +34,8 @@ const SideNavChatList = () => {
   const [chatList, setChatList] = useState([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   const socket = useRef();
 
   // On mobile, if we're in a chat or create-group, don't show the chat list
@@ -56,8 +58,49 @@ const SideNavChatList = () => {
     fetchChatList();
   }, []);
 
+  // useEffect(() => {
+  //   const fetchUsers = async () => {
+  //     try {
+  //       const res = await fetch(
+  //         `${api.defaults.baseURL}/user/searchUsers?search=${search}`,
+  //         {
+  //           credentials: "include",
+  //           headers: {
+  //             "Content-Type": "application/json",
+  //           },
+  //         }
+  //       );
+
+  //       if (!res.ok) {
+  //         if (res.status === 401) {
+  //           console.error("User is not authenticated");
+  //           setData([]);
+  //           return;
+  //         }
+  //         throw new Error("Failed to fetch users");
+  //       }
+  //       const result = await res.json();
+  //       setData(result);
+  //     } catch (error) {
+  //       console.error("Failed to fetch users:", error);
+  //       setData([]);
+  //     }
+  //   };
+
+  //   const debounceTimer = setTimeout(() => {
+  //     if (search.trim() !== "") {
+  //       fetchUsers();
+  //     } else {
+  //       setData([]);
+  //     }
+  //   }, 300);
+
+  //   return () => clearTimeout(debounceTimer);
+  // }, [search]);
+
   useEffect(() => {
     const fetchUsers = async () => {
+      setIsSearching(true); // Start searching
       try {
         const res = await fetch(
           `${api.defaults.baseURL}/user/searchUsers?search=${search}`,
@@ -77,11 +120,14 @@ const SideNavChatList = () => {
           }
           throw new Error("Failed to fetch users");
         }
+
         const result = await res.json();
         setData(result);
       } catch (error) {
         console.error("Failed to fetch users:", error);
         setData([]);
+      } finally {
+        setIsSearching(false); // End searching
       }
     };
 
@@ -372,9 +418,21 @@ const SideNavChatList = () => {
               ))
             ) : (
               <>
-                {search.trim() !== "" && (
+                {/* {search.trim() !== "" && (
                   <div className="text-center py-4 text-gray-500">
                     No users match your search
+                  </div>
+                )} */}
+
+                {search.trim() !== "" && (
+                  <div className="text-center py-4 text-gray-500">
+                    {isSearching
+                      ? "Searching..."
+                      : data.length === 0
+                      ? "No users match your search"
+                      : data.map((user) => (
+                          <div key={user._id}>{user.username}</div>
+                        ))}
                   </div>
                 )}
 
