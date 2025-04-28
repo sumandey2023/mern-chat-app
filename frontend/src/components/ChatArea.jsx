@@ -405,17 +405,10 @@ const ChatArea = () => {
   return (
     <>
       {isSmallScreen && (
-        // <div
-        //   className={`flex items-center justify-between px-4 py-3 border-b transition-colors duration-300 ${
-        //     lightTheme
-        //       ? "bg-white border-gray-200"
-        //       : "bg-[#2A2D27] border-gray-700"
-        //   } transition-all duration-300 sticky top-0 z-10`}
-        // >
         <div
-          className={` h-16 w-full flex px-4 py-3 fixed items-center top-0 left-0 transition-colors duration-300 ${
+          className={`h-16 w-full flex px-4 py-3 fixed items-center top-0 left-0 transition-colors duration-300 ${
             lightTheme ? "bg-white" : "bg-[#3C3D37]"
-          } transition-all duration-300  justify-between`}
+          } transition-all duration-300  justify-between z-10`}
         >
           <div className="flex items-center">
             <div className="relative">
@@ -595,7 +588,11 @@ const ChatArea = () => {
 
           <div className="flex flex-1  overflow-hidden relative">
             {/* Main chat area */}
-            <div className="flex  flex-col flex-1 overflow-hidden">
+            <div
+              className={`flex flex-col flex-1 overflow-hidden ${
+                isSmallScreen ? "pt-16" : ""
+              }`}
+            >
               {/* Chat Messages Area with Fixed Scrollbar */}
               <div
                 className={`flex-1 p-3 lg:p-4 overflow-y-auto chat-container scroll-smooth no-scrollbar ${
