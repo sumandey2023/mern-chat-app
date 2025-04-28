@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// const BASE_URL = "http://localhost:5000";
-const BASE_URL = "https://adda-db.onrender.com";
+const BASE_URL = "http://localhost:5000";
+// const BASE_URL = "https://adda-db.onrender.com";
 
 // Create axios instance with credentials
 const api = axios.create({
