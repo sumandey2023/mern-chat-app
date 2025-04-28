@@ -54,9 +54,78 @@ const loginController = asyncHandler(async (req, res) => {
 });
 
 // Signup controller
+// const signupController = asyncHandler(async (req, res) => {
+//   const { name, email, username, password, pic } = req.body;
+//   console.log(pic);
+
+//   const usernameExist = await userModel.findOne({ username });
+//   const emailExist = await userModel.findOne({ email });
+
+//   if (usernameExist)
+//     return res.status(400).json({ message: "Username already exists" });
+//   if (emailExist)
+//     return res.status(400).json({ message: "Email already exists" });
+
+//   const salt = await bcrypt.genSalt(10);
+//   const hash = await bcrypt.hash(password, salt);
+//   let newUser;
+
+//   try {
+//     const buffer = req.file.buffer.toString("base64");
+//     const result = await cloudinary.uploader.upload(
+//       `data:${req.file.mimetype};base64,${buffer}`,
+//       {
+//         public_id: username || undefined,
+//       }
+//     );
+//     console.log(req.body);
+
+//     console.log(name, email, username, pic);
+
+//     newUser = await userModel.create({
+//       name,
+//       email,
+//       username,
+//       password: hash,
+//       pic: result.secure_url,
+//     });
+//   } catch (error) {
+//     newUser = await userModel.create({
+//       name,
+//       email,
+//       username,
+//       password: hash,
+//     });
+//   }
+
+//   const token = generateToken(newUser);
+
+//   res.cookie("token", token, {
+//     httpOnly: true,
+//     secure: false,
+//     sameSite: "lax",
+//     maxAge: 24 * 60 * 60 * 1000,
+//   });
+
+//   return res.status(201).json({
+//     message: "User registered successfully",
+//     user: {
+//       id: newUser._id,
+//       name: newUser.name,
+//       email: newUser.email,
+//       username: newUser.username,
+//     },
+//     token,
+//   });
+// });
+
 const signupController = asyncHandler(async (req, res) => {
-  const { name, email, username, password, pic } = req.body;
-  console.log(pic);
+  const { name, email, username, password } = req.body;
+
+  // Validate required fields
+  if (!name || !email || !username || !password) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
 
   const usernameExist = await userModel.findOne({ username });
   const emailExist = await userModel.findOne({ email });
@@ -68,32 +137,30 @@ const signupController = asyncHandler(async (req, res) => {
 
   const salt = await bcrypt.genSalt(10);
   const hash = await bcrypt.hash(password, salt);
-  let newUser;
 
-  try {
-    const buffer = req.file.buffer.toString("base64");
-    const result = await cloudinary.uploader.upload(
-      `data:${req.file.mimetype};base64,${buffer}`,
-      {
-        public_id: username || undefined,
-      }
-    );
+  let picUrl;
 
-    newUser = await userModel.create({
-      name,
-      email,
-      username,
-      password: hash,
-      pic: result.secure_url,
-    });
-  } catch (error) {
-    newUser = await userModel.create({
-      name,
-      email,
-      username,
-      password: hash,
-    });
+  if (req.file) {
+    try {
+      const buffer = req.file.buffer.toString("base64");
+      const result = await cloudinary.uploader.upload(
+        `data:${req.file.mimetype};base64,${buffer}`,
+        { public_id: username }
+      );
+      picUrl = result.secure_url;
+    } catch (error) {
+      console.error("Cloudinary upload failed", error);
+      return res.status(500).json({ message: "Image upload failed" });
+    }
   }
+
+  const newUser = await userModel.create({
+    name,
+    email,
+    username,
+    password: hash,
+    pic: picUrl, // can be undefined, that's okay
+  });
 
   const token = generateToken(newUser);
 
@@ -213,27 +280,70 @@ const getChatUser = asyncHandler(async (req, res) => {
   }
 });
 
+// const addToChatList = asyncHandler(async (req, res) => {
+//   try {
+//     const { userId } = req.body;
+//     const logedInUserId = req.user._id;
+
+//     // Validate input
+//     if (!userId || !logedInUserId) {
+//       return res.status(400).json({ message: "Invalid user IDs" });
+//     }
+
+//     const loggedInUser = await userModel.findById(logedInUserId);
+//     const userToAdd = await userModel.findById(userId);
+
+//     if (!loggedInUser || !userToAdd) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     // Check if the user is already in the chat list
+//     if (!loggedInUser.chatlist.includes(userId)) {
+//       loggedInUser.chatlist.push(userId);
+//       await loggedInUser.save();
+//     }
+
+//     // Check if the logged-in user is already in the other user's chat list
+//     if (!userToAdd.chatlist.includes(logedInUserId)) {
+//       userToAdd.chatlist.push(logedInUserId);
+//       await userToAdd.save();
+//     }
+
+//     res.status(200).json({ message: "User added to chat list" });
+//   } catch (error) {
+//     console.error("Error in addToChatList:", error.message);
+//     res.status(500).json({ message: "Error adding user to chat list" });
+//   }
+// });
+
 const addToChatList = asyncHandler(async (req, res) => {
   try {
     const { userId } = req.body;
     const logedInUserId = req.user._id;
 
+    if (!userId || !logedInUserId) {
+      return res.status(400).json({ message: "Invalid user IDs" });
+    }
+
     const loggedInUser = await userModel.findById(logedInUserId);
     const userToAdd = await userModel.findById(userId);
 
-    if (!loggedInUser.chatlist.includes(userId)) {
-      loggedInUser.chatlist.push(userId);
-      await loggedInUser.save();
+    if (!loggedInUser || !userToAdd) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    if (!userToAdd.chatlist.includes(logedInUserId)) {
-      userToAdd.chatlist.push(logedInUserId);
-      await userToAdd.save();
-    }
+    await userModel.findByIdAndUpdate(logedInUserId, {
+      $addToSet: { chatlist: userId },
+    });
+
+    await userModel.findByIdAndUpdate(userId, {
+      $addToSet: { chatlist: logedInUserId },
+    });
 
     res.status(200).json({ message: "User added to chat list" });
   } catch (error) {
-    console.log(error.message);
+    console.error("Error in addToChatList:", error.message);
+    res.status(500).json({ message: "Error adding user to chat list" });
   }
 });
 

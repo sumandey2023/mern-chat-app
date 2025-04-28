@@ -35,6 +35,8 @@ const Public = () => {
       );
       if (res.status === 200) {
         console.log("User added to chat list successfully");
+        // Refresh the user list after successful addition
+        fetchAllUsers();
       } else {
         console.error("Failed to add user to chat list");
       }
@@ -74,9 +76,9 @@ const Public = () => {
             {users.map((item, index) => (
               <div
                 key={index}
-                onClick={() => {
+                onClick={async () => {
+                  await addUserToChatLIst(item._id);
                   navigate(`/app/chat/${item._id}`);
-                  addUserToChatLIst(item._id);
                 }}
                 className={`flex items-center justify-between gap-4 p-4 rounded-xl cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md hover:scale-[1.02] ${
                   lightTheme

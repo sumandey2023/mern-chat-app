@@ -139,6 +139,8 @@ const SideNavChatList = () => {
       );
       if (res.status === 200) {
         console.log("User added to chat list successfully");
+        // Refresh chat list after successful addition
+        fetchChatList();
       } else {
         console.error("Failed to add user to chat list");
       }

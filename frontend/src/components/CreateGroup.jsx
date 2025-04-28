@@ -346,7 +346,7 @@ const CreateGroup = () => {
                 <div className="flex items-center">
                   <Avatar className="mr-2 w-8 h-8 rounded-full overflow-hidden">
                     <img
-                      src={user.pic}
+                      src={user.pic || "/profile.webp"}
                       alt="User Avatar"
                       className="w-full h-full object-cover"
                     />

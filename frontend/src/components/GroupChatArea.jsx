@@ -620,6 +620,12 @@ const GroupChatArea = () => {
       toast.info(data.data.message, {
         autoClose: 7000,
       });
+      if (
+        data.data.message ===
+        "You can't leave as the only admin. Please assign another admin first."
+      ) {
+        return;
+      }
       navigate("/app/groups", {
         state: { leaveGroup: "Left the group successfully!" },
       });
@@ -1483,7 +1489,7 @@ const GroupChatArea = () => {
                   <div className="flex items-center">
                     <Avatar className="mr-2 w-8 h-8">
                       <img
-                        src={user.pic}
+                        src={user.pic || "/profile.webp"}
                         alt={user.name}
                         className="w-full h-full object-cover"
                       />

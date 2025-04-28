@@ -161,18 +161,31 @@ const ChatArea = () => {
   useEffect(() => {
     const addUserToChatList = async (userId) => {
       try {
-        const res = await api.post(
-          "/user/add-to-chat-list",
-          { userId },
-          { withCredentials: true }
-        );
+        // Check if we're coming from navigation
+        const isFromNavigation =
+          window.performance.getEntriesByType("navigation")[0]?.type ===
+          "navigate";
+
+        // Only add to chat list if we're not coming from navigation
+        if (!isFromNavigation) {
+          const res = await api.post(
+            "/user/add-to-chat-list",
+            { userId },
+            { withCredentials: true }
+          );
+          if (res.status === 200) {
+            console.log("User added to chat list successfully");
+          }
+        }
       } catch (error) {
         console.error("Error adding user to chat list:", error);
       }
     };
 
-    addUserToChatList(id);
-  }, []);
+    if (id) {
+      addUserToChatList(id);
+    }
+  }, [id]);
 
   const handleSendMessage = async () => {
     if (!messageToBeSend.trim()) return;
