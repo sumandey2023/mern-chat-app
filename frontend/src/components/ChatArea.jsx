@@ -421,26 +421,13 @@ const ChatArea = () => {
           lightTheme ? "bg-white" : "bg-[#3C3D37]"
         } transition-all duration-300`}
       >
-        {/* Header - Fixed only on small screens */}
+        {/* Header */}
         <div
           className={`flex items-center justify-between px-4 py-3 border-b transition-colors duration-300 ${
             lightTheme
               ? "bg-white border-gray-200"
               : "bg-[#2A2D27] border-gray-700"
-          } transition-all duration-300 ${
-            isSmallScreen
-              ? "fixed top-0 left-0 right-0 z-50"
-              : "sticky top-0 z-10"
-          }`}
-          style={
-            isSmallScreen
-              ? {
-                  maxWidth: "100%",
-                  margin: "0 auto",
-                  padding: "0.75rem 1rem",
-                }
-              : {}
-          }
+          } transition-all duration-300 sticky top-0 z-10`}
         >
           <div className="flex items-center">
             <div className="relative">
@@ -512,664 +499,653 @@ const ChatArea = () => {
           </div>
         </div>
 
-        {/* Add padding only on small screens */}
-        <div className={isSmallScreen ? "pt-16" : ""}>
-          <div className="flex flex-1 overflow-hidden relative">
-            {/* Main chat area */}
-            <div className="flex flex-col flex-1 overflow-hidden">
-              {/* Chat Messages Area with Fixed Scrollbar */}
-              <div
-                className={`flex-1 p-3 lg:p-4 overflow-y-auto chat-container scroll-smooth no-scrollbar ${
-                  lightTheme
-                    ? "bg-gray-50 "
-                    : "bg-gradient-to-b from-[#2A2D27] to-[#323329] "
-                } transition-all duration-300`}
-                style={{
-                  overflowY: "auto",
-                  maxHeight: "calc(100vh - 200px)",
-                }}
-              >
-                {groupedMessages.map((item, index) => {
-                  if (item.type === "date") {
-                    return (
-                      <div key={item.id} className="flex justify-center my-3">
+        <div className="flex flex-1 overflow-hidden relative">
+          {/* Main chat area */}
+          <div className="flex flex-col flex-1 overflow-hidden">
+            {/* Chat Messages Area with Fixed Scrollbar */}
+            <div
+              className={`flex-1 p-3 lg:p-4 overflow-y-auto chat-container scroll-smooth no-scrollbar ${
+                lightTheme
+                  ? "bg-gray-50 "
+                  : "bg-gradient-to-b from-[#2A2D27] to-[#323329] "
+              } transition-all duration-300`}
+              style={{
+                overflowY: "auto",
+                maxHeight: "calc(100vh - 200px)",
+              }}
+            >
+              {groupedMessages.map((item, index) => {
+                if (item.type === "date") {
+                  return (
+                    <div key={item.id} className="flex justify-center my-3">
+                      <div
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          lightTheme
+                            ? "bg-gray-200 text-gray-600"
+                            : "bg-gray-700 text-gray-300"
+                        }`}
+                      >
+                        {formatMessageDate(item.date)}
+                      </div>
+                    </div>
+                  );
+                } else {
+                  const message = item.data;
+                  const time = formatTime(message.createdAt);
+                  return message.senderId === loggedInUser._id ? (
+                    <MessageSelf
+                      key={`msg-${index}`}
+                      text={message.text}
+                      time={time}
+                      isTemp={message.isTemp}
+                    />
+                  ) : (
+                    <MessageOther
+                      key={`msg-${index}`}
+                      text={message.text}
+                      pic={receiverData?.pic}
+                      time={time}
+                    />
+                  );
+                }
+              })}
+
+              {/* Typing indicator */}
+              {receiverIsTyping && (
+                <div className="flex items-center gap-2 mt-2 mb-2 px-2">
+                  <Avatar
+                    alt={receiverData?.name || "User"}
+                    src={receiverData?.pic}
+                    sx={{ width: 24, height: 24 }}
+                  />
+                  <div
+                    className={`px-3 py-2 rounded-lg ${
+                      lightTheme ? "bg-gray-200" : "bg-[#4A4B45]"
+                    }`}
+                  >
+                    <div className="flex gap-1">
+                      <span
+                        className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
+                        style={{ animationDelay: "0ms" }}
+                      ></span>
+                      <span
+                        className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
+                        style={{ animationDelay: "200ms" }}
+                      ></span>
+                      <span
+                        className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
+                        style={{ animationDelay: "400ms" }}
+                      ></span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div ref={scrollRef} />
+            </div>
+
+            {/* Input area */}
+            <div
+              className={`px-3 py-2 border-t transition-colors duration-300 ${
+                lightTheme
+                  ? "bg-white border-gray-200"
+                  : "bg-[#2A2D27] border-gray-700"
+              } transition-all duration-300 sticky bottom-0 z-10`}
+            >
+              <div className="flex items-center gap-2">
+                <Tooltip title="Attach File">
+                  <IconButton
+                    size="small"
+                    className={`flex-shrink-0 hover:scale-110 transition-transform duration-300 ${
+                      lightTheme ? "hover:bg-gray-100" : "hover:bg-[#3C3D37]"
+                    } transition-all duration-300`}
+                  >
+                    <AttachFileIcon
+                      className={lightTheme ? "text-gray-600" : "text-gray-300"}
+                      fontSize="small"
+                    />
+                  </IconButton>
+                </Tooltip>
+
+                <ClickAwayListener onClickAway={handleClickAway}>
+                  <div className="relative">
+                    <Tooltip title="Emojis">
+                      <IconButton
+                        size="small"
+                        onClick={toggleEmojiPicker}
+                        className={`flex-shrink-0 hover:scale-110 transition-transform duration-300 ${
+                          lightTheme
+                            ? "hover:bg-gray-100"
+                            : "hover:bg-[#3C3D37]"
+                        } ${
+                          showEmojiPicker
+                            ? lightTheme
+                              ? "bg-gray-200"
+                              : "bg-[#4A4B45]"
+                            : ""
+                        }`}
+                      >
+                        <EmojiEmotionsIcon
+                          className={
+                            lightTheme ? "text-gray-600" : "text-gray-300"
+                          }
+                          fontSize="small"
+                        />
+                      </IconButton>
+                    </Tooltip>
+
+                    {showEmojiPicker && (
+                      <div className="absolute bottom-12 left-0 z-10">
                         <div
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            lightTheme
-                              ? "bg-gray-200 text-gray-600"
-                              : "bg-gray-700 text-gray-300"
+                          className={`p-2 rounded-lg shadow-lg ${
+                            lightTheme ? "bg-white" : "bg-[#2A2D27]"
                           }`}
                         >
-                          {formatMessageDate(item.date)}
+                          <div className="flex justify-between items-center mb-2 px-2">
+                            <span
+                              className={`text-sm font-medium ${
+                                lightTheme ? "text-gray-700" : "text-gray-300"
+                              }`}
+                            >
+                              Emojis
+                            </span>
+                            <IconButton
+                              size="small"
+                              onClick={() => setShowEmojiPicker(false)}
+                            >
+                              <CloseIcon
+                                fontSize="small"
+                                className={
+                                  lightTheme ? "text-gray-500" : "text-gray-400"
+                                }
+                              />
+                            </IconButton>
+                          </div>
+                          <EmojiPicker
+                            onEmojiClick={handleEmojiClick}
+                            autoFocusSearch={false}
+                            theme={lightTheme ? "light" : "dark"}
+                            searchDisabled
+                            skinTonesDisabled
+                            height={350}
+                            width={isSmallScreen ? 250 : 320}
+                          />
                         </div>
                       </div>
-                    );
-                  } else {
-                    const message = item.data;
-                    const time = formatTime(message.createdAt);
-                    return message.senderId === loggedInUser._id ? (
-                      <MessageSelf
-                        key={`msg-${index}`}
-                        text={message.text}
-                        time={time}
-                        isTemp={message.isTemp}
-                      />
-                    ) : (
-                      <MessageOther
-                        key={`msg-${index}`}
-                        text={message.text}
-                        pic={receiverData?.pic}
-                        time={time}
-                      />
-                    );
-                  }
-                })}
+                    )}
+                  </div>
+                </ClickAwayListener>
 
-                {/* Typing indicator */}
-                {receiverIsTyping && (
-                  <div className="flex items-center gap-2 mt-2 mb-2 px-2">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={messageToBeSend}
+                    onChange={handleTyping}
+                    placeholder="Type a message..."
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    className={`flex-1 w-full p-3 rounded-full outline-none text-base lg:text-lg transition-all ${
+                      lightTheme
+                        ? "bg-gray-100 text-gray-800 focus:bg-gray-200 focus:shadow-inner"
+                        : "bg-[#3C3D37] text-white focus:bg-[#444440] focus:shadow-inner"
+                    } transition-all duration-300`}
+                    // Prevent keyboard from closing
+                    onBlur={(e) => {
+                      e.preventDefault();
+                      e.target.focus();
+                    }}
+                  />
+                </div>
+
+                <Tooltip title="Voice Message">
+                  <IconButton
+                    size="small"
+                    className={`flex-shrink-0 hover:scale-110 transition-transform duration-300 ${
+                      lightTheme ? "hover:bg-gray-100" : "hover:bg-[#3C3D37]"
+                    } transition-all duration-300`}
+                  >
+                    <MicIcon
+                      className={lightTheme ? "text-gray-600" : "text-gray-300"}
+                      fontSize="small"
+                    />
+                  </IconButton>
+                </Tooltip>
+
+                <Tooltip title="Send message" placement="top">
+                  <IconButton
+                    size={isSmallScreen ? "small" : "medium"}
+                    onClick={handleSendMessage}
+                    disabled={!messageToBeSend.trim()}
+                    className={`${
+                      messageToBeSend.trim() ? "opacity-100" : "opacity-60"
+                    }`}
+                  >
+                    <TelegramIcon
+                      className={`${
+                        messageToBeSend.trim()
+                          ? lightTheme
+                            ? "text-blue-500"
+                            : "text-blue-400"
+                          : lightTheme
+                          ? "text-gray-400"
+                          : "text-gray-500"
+                      }`}
+                      fontSize={isSmallScreen ? "small" : "medium"}
+                    />
+                  </IconButton>
+                </Tooltip>
+              </div>
+            </div>
+          </div>
+
+          {/* User Info Side Panel */}
+          {isSmallScreen ? (
+            // Mobile overlay panel
+            <div
+              className={`absolute inset-0 z-50 transform transition-transform duration-300 ease-in-out ${
+                showUserInfo ? "translate-x-0" : "translate-x-full"
+              }`}
+            >
+              <div
+                className={`absolute inset-0  duration-300 ${
+                  showUserInfo ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
+                onClick={() => setShowUserInfo(false)}
+              />
+              <div
+                className={`absolute right-0 top-0 h-full w-72 transform transition-transform duration-300 ${
+                  showUserInfo ? "translate-x-0" : "translate-x-full"
+                } ${
+                  lightTheme
+                    ? "bg-white border-l border-gray-200"
+                    : "bg-[#2A2D27] border-l border-gray-700"
+                } shadow-lg`}
+              >
+                {/* Close button for mobile */}
+                <div className="absolute top-2 right-2 z-10">
+                  <IconButton
+                    onClick={() => setShowUserInfo(false)}
+                    className={`${
+                      lightTheme ? "text-gray-600" : "text-gray-300"
+                    } hover:bg-gray-100 dark:hover:bg-gray-700`}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                </div>
+
+                {/* User Info Content */}
+                <div className="p-4 overflow-y-auto h-full">
+                  {/* User Profile Header */}
+                  <div className="flex justify-center  mb-4">
                     <Avatar
                       alt={receiverData?.name || "User"}
                       src={receiverData?.pic}
-                      sx={{ width: 24, height: 24 }}
-                    />
-                    <div
-                      className={`px-3 py-2 rounded-lg ${
-                        lightTheme ? "bg-gray-200" : "bg-[#4A4B45]"
-                      }`}
+                      sx={{
+                        width: 100,
+                        height: 100,
+                        border: `3px solid ${
+                          onlineUsers.includes(receiverData._id)
+                            ? lightTheme
+                              ? "#10B981"
+                              : "#34D399"
+                            : lightTheme
+                            ? "#3498DB"
+                            : "#4DD0E1"
+                        }`,
+                        bgcolor: lightTheme ? "#f0f7fc" : "#223240",
+                        boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
+                      }}
                     >
-                      <div className="flex gap-1">
-                        <span
-                          className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
-                          style={{ animationDelay: "0ms" }}
-                        ></span>
-                        <span
-                          className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
-                          style={{ animationDelay: "200ms" }}
-                        ></span>
-                        <span
-                          className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
-                          style={{ animationDelay: "400ms" }}
-                        ></span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div ref={scrollRef} />
-              </div>
-
-              {/* Input area - Fixed at bottom */}
-              <div
-                className={`px-3 py-2 border-t transition-colors duration-300 ${
-                  lightTheme
-                    ? "bg-white border-gray-200"
-                    : "bg-[#2A2D27] border-gray-700"
-                } transition-all duration-300 sticky bottom-0 z-10`}
-              >
-                <div className="flex items-center gap-2">
-                  <Tooltip title="Attach File">
-                    <IconButton
-                      size="small"
-                      className={`flex-shrink-0 hover:scale-110 transition-transform duration-300 ${
-                        lightTheme ? "hover:bg-gray-100" : "hover:bg-[#3C3D37]"
-                      } transition-all duration-300`}
-                    >
-                      <AttachFileIcon
-                        className={
-                          lightTheme ? "text-gray-600" : "text-gray-300"
-                        }
-                        fontSize="small"
-                      />
-                    </IconButton>
-                  </Tooltip>
-
-                  <ClickAwayListener onClickAway={handleClickAway}>
-                    <div className="relative">
-                      <Tooltip title="Emojis">
-                        <IconButton
-                          size="small"
-                          onClick={toggleEmojiPicker}
-                          className={`flex-shrink-0 hover:scale-110 transition-transform duration-300 ${
-                            lightTheme
-                              ? "hover:bg-gray-100"
-                              : "hover:bg-[#3C3D37]"
-                          } ${
-                            showEmojiPicker
+                      {!receiverData?.pic && (
+                        <PersonIcon
+                          sx={{
+                            fontSize: "3rem",
+                            color: onlineUsers.includes(receiverData._id)
                               ? lightTheme
-                                ? "bg-gray-200"
-                                : "bg-[#4A4B45]"
-                              : ""
-                          }`}
-                        >
-                          <EmojiEmotionsIcon
-                            className={
-                              lightTheme ? "text-gray-600" : "text-gray-300"
-                            }
+                                ? "#3498DB"
+                                : "#4DD0E1"
+                              : lightTheme
+                              ? "#3498DB"
+                              : "#4DD0E1",
+                          }}
+                        />
+                      )}
+                    </Avatar>
+                  </div>
+
+                  <Typography
+                    variant="h6"
+                    align="center"
+                    className={`font-semibold ${
+                      lightTheme ? "text-gray-800" : "text-white"
+                    }`}
+                  >
+                    {receiverData?.name || "User"}
+                  </Typography>
+
+                  <Typography
+                    variant="body2"
+                    align="center"
+                    className={`mt-1 ${
+                      onlineUsers.includes(receiverData._id)
+                        ? lightTheme
+                          ? "text-green-600"
+                          : "text-green-400"
+                        : lightTheme
+                        ? "text-gray-600"
+                        : "text-gray-300"
+                    }`}
+                  >
+                    {onlineUsers.includes(receiverData._id)
+                      ? "Online"
+                      : "Offline"}
+                  </Typography>
+
+                  {/* User Info Card */}
+                  <Box
+                    className={`mt-6 p-4 rounded-lg ${
+                      lightTheme ? "bg-gray-50" : "bg-[#3C3D37]"
+                    } transition-all duration-300 shadow-sm hover:shadow-md`}
+                  >
+                    <div className="space-y-4">
+                      {/* Username */}
+                      {receiverData?.username && (
+                        <div className="flex items-center">
+                          <AlternateEmailIcon
+                            className={`mr-3 ${
+                              lightTheme ? "text-blue-500" : "text-blue-400"
+                            }`}
                             fontSize="small"
                           />
-                        </IconButton>
-                      </Tooltip>
+                          <div>
+                            <Typography
+                              variant="body2"
+                              className={`text-xs ${
+                                lightTheme ? "text-gray-500" : "text-gray-400"
+                              }`}
+                            >
+                              Username
+                            </Typography>
+                            <Typography
+                              variant="body1"
+                              className={
+                                lightTheme ? "text-gray-800" : "text-gray-200"
+                              }
+                            >
+                              @{receiverData.username}
+                            </Typography>
+                          </div>
+                        </div>
+                      )}
 
-                      {showEmojiPicker && (
-                        <div className="absolute bottom-12 left-0 z-10">
-                          <div
-                            className={`p-2 rounded-lg shadow-lg ${
-                              lightTheme ? "bg-white" : "bg-[#2A2D27]"
+                      {/* Email */}
+                      {receiverData?.email && (
+                        <div className="flex items-center">
+                          <EmailIcon
+                            className={`mr-3 ${
+                              lightTheme ? "text-blue-500" : "text-blue-400"
                             }`}
-                          >
-                            <div className="flex justify-between items-center mb-2 px-2">
-                              <span
-                                className={`text-sm font-medium ${
-                                  lightTheme ? "text-gray-700" : "text-gray-300"
-                                }`}
-                              >
-                                Emojis
-                              </span>
-                              <IconButton
-                                size="small"
-                                onClick={() => setShowEmojiPicker(false)}
-                              >
-                                <CloseIcon
-                                  fontSize="small"
-                                  className={
-                                    lightTheme
-                                      ? "text-gray-500"
-                                      : "text-gray-400"
-                                  }
-                                />
-                              </IconButton>
-                            </div>
-                            <EmojiPicker
-                              onEmojiClick={handleEmojiClick}
-                              autoFocusSearch={false}
-                              theme={lightTheme ? "light" : "dark"}
-                              searchDisabled
-                              skinTonesDisabled
-                              height={350}
-                              width={isSmallScreen ? 250 : 320}
-                            />
+                            fontSize="small"
+                          />
+                          <div>
+                            <Typography
+                              variant="body2"
+                              className={`text-xs ${
+                                lightTheme ? "text-gray-500" : "text-gray-400"
+                              }`}
+                            >
+                              Email
+                            </Typography>
+                            <Typography
+                              variant="body1"
+                              className={
+                                lightTheme ? "text-gray-800" : "text-gray-200"
+                              }
+                            >
+                              {receiverData.email}
+                            </Typography>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Joined Date */}
+                      {receiverData?.createdAt && (
+                        <div className="flex items-center">
+                          <CalendarTodayIcon
+                            className={`mr-3 ${
+                              lightTheme ? "text-blue-500" : "text-blue-400"
+                            }`}
+                            fontSize="small"
+                          />
+                          <div>
+                            <Typography
+                              variant="body2"
+                              className={`text-xs ${
+                                lightTheme ? "text-gray-500" : "text-gray-400"
+                              }`}
+                            >
+                              Joined
+                            </Typography>
+                            <Typography
+                              variant="body1"
+                              className={
+                                lightTheme ? "text-gray-800" : "text-gray-200"
+                              }
+                            >
+                              {formatJoinDate(receiverData.createdAt)}
+                            </Typography>
                           </div>
                         </div>
                       )}
                     </div>
-                  </ClickAwayListener>
+                  </Box>
 
-                  <div className="relative flex-1">
-                    <input
-                      type="text"
-                      value={messageToBeSend}
-                      onChange={handleTyping}
-                      placeholder="Type a message..."
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendMessage();
-                        }
-                      }}
-                      className={`flex-1 w-full p-3 rounded-full outline-none text-base lg:text-lg transition-all ${
-                        lightTheme
-                          ? "bg-gray-100 text-gray-800 focus:bg-gray-200 focus:shadow-inner"
-                          : "bg-[#3C3D37] text-white focus:bg-[#444440] focus:shadow-inner"
-                      } transition-all duration-300`}
-                      // Prevent keyboard from closing
-                      onBlur={(e) => {
-                        e.preventDefault();
-                        e.target.focus();
-                      }}
-                    />
-                  </div>
-
-                  <Tooltip title="Voice Message">
-                    <IconButton
-                      size="small"
-                      className={`flex-shrink-0 hover:scale-110 transition-transform duration-300 ${
-                        lightTheme ? "hover:bg-gray-100" : "hover:bg-[#3C3D37]"
-                      } transition-all duration-300`}
-                    >
-                      <MicIcon
-                        className={
-                          lightTheme ? "text-gray-600" : "text-gray-300"
-                        }
-                        fontSize="small"
-                      />
-                    </IconButton>
-                  </Tooltip>
-
-                  <Tooltip title="Send message" placement="top">
-                    <IconButton
-                      size={isSmallScreen ? "small" : "medium"}
-                      onClick={handleSendMessage}
-                      disabled={!messageToBeSend.trim()}
-                      className={`${
-                        messageToBeSend.trim() ? "opacity-100" : "opacity-60"
-                      }`}
-                    >
-                      <TelegramIcon
-                        className={`${
-                          messageToBeSend.trim()
-                            ? lightTheme
-                              ? "text-blue-500"
-                              : "text-blue-400"
-                            : lightTheme
-                            ? "text-gray-400"
-                            : "text-gray-500"
-                        }`}
-                        fontSize={isSmallScreen ? "small" : "medium"}
-                      />
-                    </IconButton>
-                  </Tooltip>
+                  {/* Action Button */}
+                  {/* <Button
+                    variant="contained"
+                    fullWidth
+                    startIcon={<ChatIcon />}
+                    className="mt-4"
+                    sx={{
+                      mt: 4,
+                      py: 1.5,
+                      borderRadius: 2,
+                      textTransform: "none",
+                      background: lightTheme ? "#3498DB" : "#4DD0E1",
+                      "&:hover": {
+                        background: lightTheme ? "#2980B9" : "#26C6DA",
+                      },
+                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                    }}
+                  >
+                    Continue Chatting
+                  </Button> */}
                 </div>
               </div>
             </div>
-
-            {/* User Info Side Panel */}
-            {isSmallScreen ? (
-              // Mobile overlay panel
+          ) : (
+            // Desktop side panel
+            <Collapse in={showUserInfo} orientation="horizontal">
               <div
-                className={`absolute inset-0 z-50 transform transition-transform duration-300 ease-in-out ${
-                  showUserInfo ? "translate-x-0" : "translate-x-full"
-                }`}
+                className={`w-72 border-l ${
+                  lightTheme
+                    ? "bg-white border-gray-200"
+                    : "bg-[#2A2D27] border-gray-700"
+                } flex flex-col max-h-[100vh]`}
               >
-                <div
-                  className={`absolute inset-0  duration-300 ${
-                    showUserInfo
-                      ? "opacity-100"
-                      : "opacity-0 pointer-events-none"
-                  }`}
-                  onClick={() => setShowUserInfo(false)}
-                />
-                <div
-                  className={`absolute right-0 top-0 h-full w-72 transform transition-transform duration-300 ${
-                    showUserInfo ? "translate-x-0" : "translate-x-full"
-                  } ${
-                    lightTheme
-                      ? "bg-white border-l border-gray-200"
-                      : "bg-[#2A2D27] border-l border-gray-700"
-                  } shadow-lg`}
-                >
-                  {/* Close button for mobile */}
-                  <div className="absolute top-2 right-2 z-10">
-                    <IconButton
-                      onClick={() => setShowUserInfo(false)}
-                      className={`${
-                        lightTheme ? "text-gray-600" : "text-gray-300"
-                      } hover:bg-gray-100 dark:hover:bg-gray-700`}
-                    >
-                      <CloseIcon />
-                    </IconButton>
-                  </div>
-
-                  {/* User Info Content */}
-                  <div className="p-4 overflow-y-auto h-full">
-                    {/* User Profile Header */}
-                    <div className="flex justify-center  mb-4">
-                      <Avatar
-                        alt={receiverData?.name || "User"}
-                        src={receiverData?.pic}
-                        sx={{
-                          width: 100,
-                          height: 100,
-                          border: `3px solid ${
-                            onlineUsers.includes(receiverData._id)
-                              ? lightTheme
-                                ? "#10B981"
-                                : "#34D399"
-                              : lightTheme
-                              ? "#3498DB"
-                              : "#4DD0E1"
-                          }`,
-                          bgcolor: lightTheme ? "#f0f7fc" : "#223240",
-                          boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
-                        }}
-                      >
-                        {!receiverData?.pic && (
-                          <PersonIcon
-                            sx={{
-                              fontSize: "3rem",
-                              color: onlineUsers.includes(receiverData._id)
-                                ? lightTheme
-                                  ? "#3498DB"
-                                  : "#4DD0E1"
-                                : lightTheme
-                                ? "#3498DB"
-                                : "#4DD0E1",
-                            }}
-                          />
-                        )}
-                      </Avatar>
-                    </div>
-
-                    <Typography
-                      variant="h6"
-                      align="center"
-                      className={`font-semibold ${
-                        lightTheme ? "text-gray-800" : "text-white"
-                      }`}
-                    >
-                      {receiverData?.name || "User"}
-                    </Typography>
-
-                    <Typography
-                      variant="body2"
-                      align="center"
-                      className={`mt-1 ${
-                        onlineUsers.includes(receiverData._id)
-                          ? lightTheme
-                            ? "text-green-600"
-                            : "text-green-400"
-                          : lightTheme
-                          ? "text-gray-600"
-                          : "text-gray-300"
-                      }`}
-                    >
-                      {onlineUsers.includes(receiverData._id)
-                        ? "Online"
-                        : "Offline"}
-                    </Typography>
-
-                    {/* User Info Card */}
-                    <Box
-                      className={`mt-6 p-4 rounded-lg ${
-                        lightTheme ? "bg-gray-50" : "bg-[#3C3D37]"
-                      } transition-all duration-300 shadow-sm hover:shadow-md`}
-                    >
-                      <div className="space-y-4">
-                        {/* Username */}
-                        {receiverData?.username && (
-                          <div className="flex items-center">
-                            <AlternateEmailIcon
-                              className={`mr-3 ${
-                                lightTheme ? "text-blue-500" : "text-blue-400"
-                              }`}
-                              fontSize="small"
-                            />
-                            <div>
-                              <Typography
-                                variant="body2"
-                                className={`text-xs ${
-                                  lightTheme ? "text-gray-500" : "text-gray-400"
-                                }`}
-                              >
-                                Username
-                              </Typography>
-                              <Typography
-                                variant="body1"
-                                className={
-                                  lightTheme ? "text-gray-800" : "text-gray-200"
-                                }
-                              >
-                                @{receiverData.username}
-                              </Typography>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Email */}
-                        {receiverData?.email && (
-                          <div className="flex items-center">
-                            <EmailIcon
-                              className={`mr-3 ${
-                                lightTheme ? "text-blue-500" : "text-blue-400"
-                              }`}
-                              fontSize="small"
-                            />
-                            <div>
-                              <Typography
-                                variant="body2"
-                                className={`text-xs ${
-                                  lightTheme ? "text-gray-500" : "text-gray-400"
-                                }`}
-                              >
-                                Email
-                              </Typography>
-                              <Typography
-                                variant="body1"
-                                className={
-                                  lightTheme ? "text-gray-800" : "text-gray-200"
-                                }
-                              >
-                                {receiverData.email}
-                              </Typography>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Joined Date */}
-                        {receiverData?.createdAt && (
-                          <div className="flex items-center">
-                            <CalendarTodayIcon
-                              className={`mr-3 ${
-                                lightTheme ? "text-blue-500" : "text-blue-400"
-                              }`}
-                              fontSize="small"
-                            />
-                            <div>
-                              <Typography
-                                variant="body2"
-                                className={`text-xs ${
-                                  lightTheme ? "text-gray-500" : "text-gray-400"
-                                }`}
-                              >
-                                Joined
-                              </Typography>
-                              <Typography
-                                variant="body1"
-                                className={
-                                  lightTheme ? "text-gray-800" : "text-gray-200"
-                                }
-                              >
-                                {formatJoinDate(receiverData.createdAt)}
-                              </Typography>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </Box>
-
-                    {/* Action Button */}
-                    {/* <Button
-                      variant="contained"
-                      fullWidth
-                      startIcon={<ChatIcon />}
-                      className="mt-4"
+                <div className="p-4 overflow-y-auto flex-grow">
+                  {/* User Profile Header */}
+                  <div className="flex justify-center  mb-4">
+                    <Avatar
+                      alt={receiverData?.name || "User"}
+                      src={receiverData?.pic}
                       sx={{
-                        mt: 4,
-                        py: 1.5,
-                        borderRadius: 2,
-                        textTransform: "none",
-                        background: lightTheme ? "#3498DB" : "#4DD0E1",
-                        "&:hover": {
-                          background: lightTheme ? "#2980B9" : "#26C6DA",
-                        },
-                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                        width: 100,
+                        height: 100,
+                        border: `3px solid ${
+                          onlineUsers.includes(receiverData._id)
+                            ? lightTheme
+                              ? "#10B981"
+                              : "#34D399"
+                            : lightTheme
+                            ? "#3498DB"
+                            : "#4DD0E1"
+                        }`,
+                        bgcolor: lightTheme ? "#f0f7fc" : "#223240",
+                        boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
                       }}
                     >
-                      Continue Chatting
-                    </Button> */}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              // Desktop side panel
-              <Collapse in={showUserInfo} orientation="horizontal">
-                <div
-                  className={`w-72 border-l ${
-                    lightTheme
-                      ? "bg-white border-gray-200"
-                      : "bg-[#2A2D27] border-gray-700"
-                  } flex flex-col max-h-[100vh]`}
-                >
-                  <div className="p-4 overflow-y-auto flex-grow">
-                    {/* User Profile Header */}
-                    <div className="flex justify-center  mb-4">
-                      <Avatar
-                        alt={receiverData?.name || "User"}
-                        src={receiverData?.pic}
-                        sx={{
-                          width: 100,
-                          height: 100,
-                          border: `3px solid ${
-                            onlineUsers.includes(receiverData._id)
+                      {!receiverData?.pic && (
+                        <PersonIcon
+                          sx={{
+                            fontSize: "3rem",
+                            color: onlineUsers.includes(receiverData._id)
                               ? lightTheme
-                                ? "#10B981"
-                                : "#34D399"
+                                ? "#3498DB"
+                                : "#4DD0E1"
                               : lightTheme
                               ? "#3498DB"
-                              : "#4DD0E1"
-                          }`,
-                          bgcolor: lightTheme ? "#f0f7fc" : "#223240",
-                          boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
-                        }}
-                      >
-                        {!receiverData?.pic && (
-                          <PersonIcon
-                            sx={{
-                              fontSize: "3rem",
-                              color: onlineUsers.includes(receiverData._id)
-                                ? lightTheme
-                                  ? "#3498DB"
-                                  : "#4DD0E1"
-                                : lightTheme
-                                ? "#3498DB"
-                                : "#4DD0E1",
-                            }}
-                          />
-                        )}
-                      </Avatar>
-                    </div>
-
-                    <Typography
-                      variant="h6"
-                      align="center"
-                      className={`font-semibold ${
-                        lightTheme ? "text-gray-800" : "text-white"
-                      }`}
-                    >
-                      {receiverData?.name || "User"}
-                    </Typography>
-
-                    <Typography
-                      variant="body2"
-                      align="center"
-                      className={`mt-1 ${
-                        onlineUsers.includes(receiverData._id)
-                          ? lightTheme
-                            ? "text-green-600"
-                            : "text-green-400"
-                          : lightTheme
-                          ? "text-gray-600"
-                          : "text-gray-300"
-                      }`}
-                    >
-                      {onlineUsers.includes(receiverData._id)
-                        ? "Online"
-                        : "Offline"}
-                    </Typography>
-
-                    {/* User Info Card */}
-                    <Box
-                      className={`mt-6 p-4 rounded-lg ${
-                        lightTheme ? "bg-gray-50" : "bg-[#3C3D37]"
-                      } transition-all duration-300 shadow-sm hover:shadow-md`}
-                    >
-                      <div className="space-y-4">
-                        {/* Username */}
-                        {receiverData?.username && (
-                          <div className="flex items-center">
-                            <AlternateEmailIcon
-                              className={`mr-3 ${
-                                lightTheme ? "text-blue-500" : "text-blue-400"
-                              }`}
-                              fontSize="small"
-                            />
-                            <div>
-                              <Typography
-                                variant="body2"
-                                className={`text-xs ${
-                                  lightTheme ? "text-gray-500" : "text-gray-400"
-                                }`}
-                              >
-                                Username
-                              </Typography>
-                              <Typography
-                                variant="body1"
-                                className={
-                                  lightTheme ? "text-gray-800" : "text-gray-200"
-                                }
-                              >
-                                @{receiverData.username}
-                              </Typography>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Email */}
-                        {receiverData?.email && (
-                          <div className="flex items-center">
-                            <EmailIcon
-                              className={`mr-3 ${
-                                lightTheme ? "text-blue-500" : "text-blue-400"
-                              }`}
-                              fontSize="small"
-                            />
-                            <div>
-                              <Typography
-                                variant="body2"
-                                className={`text-xs ${
-                                  lightTheme ? "text-gray-500" : "text-gray-400"
-                                }`}
-                              >
-                                Email
-                              </Typography>
-                              <Typography
-                                variant="body1"
-                                className={
-                                  lightTheme ? "text-gray-800" : "text-gray-200"
-                                }
-                              >
-                                {receiverData.email}
-                              </Typography>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Joined Date */}
-                        {receiverData?.createdAt && (
-                          <div className="flex items-center">
-                            <CalendarTodayIcon
-                              className={`mr-3 ${
-                                lightTheme ? "text-blue-500" : "text-blue-400"
-                              }`}
-                              fontSize="small"
-                            />
-                            <div>
-                              <Typography
-                                variant="body2"
-                                className={`text-xs ${
-                                  lightTheme ? "text-gray-500" : "text-gray-400"
-                                }`}
-                              >
-                                Joined
-                              </Typography>
-                              <Typography
-                                variant="body1"
-                                className={
-                                  lightTheme ? "text-gray-800" : "text-gray-200"
-                                }
-                              >
-                                {formatJoinDate(receiverData.createdAt)}
-                              </Typography>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </Box>
+                              : "#4DD0E1",
+                          }}
+                        />
+                      )}
+                    </Avatar>
                   </div>
+
+                  <Typography
+                    variant="h6"
+                    align="center"
+                    className={`font-semibold ${
+                      lightTheme ? "text-gray-800" : "text-white"
+                    }`}
+                  >
+                    {receiverData?.name || "User"}
+                  </Typography>
+
+                  <Typography
+                    variant="body2"
+                    align="center"
+                    className={`mt-1 ${
+                      onlineUsers.includes(receiverData._id)
+                        ? lightTheme
+                          ? "text-green-600"
+                          : "text-green-400"
+                        : lightTheme
+                        ? "text-gray-600"
+                        : "text-gray-300"
+                    }`}
+                  >
+                    {onlineUsers.includes(receiverData._id)
+                      ? "Online"
+                      : "Offline"}
+                  </Typography>
+
+                  {/* User Info Card */}
+                  <Box
+                    className={`mt-6 p-4 rounded-lg ${
+                      lightTheme ? "bg-gray-50" : "bg-[#3C3D37]"
+                    } transition-all duration-300 shadow-sm hover:shadow-md`}
+                  >
+                    <div className="space-y-4">
+                      {/* Username */}
+                      {receiverData?.username && (
+                        <div className="flex items-center">
+                          <AlternateEmailIcon
+                            className={`mr-3 ${
+                              lightTheme ? "text-blue-500" : "text-blue-400"
+                            }`}
+                            fontSize="small"
+                          />
+                          <div>
+                            <Typography
+                              variant="body2"
+                              className={`text-xs ${
+                                lightTheme ? "text-gray-500" : "text-gray-400"
+                              }`}
+                            >
+                              Username
+                            </Typography>
+                            <Typography
+                              variant="body1"
+                              className={
+                                lightTheme ? "text-gray-800" : "text-gray-200"
+                              }
+                            >
+                              @{receiverData.username}
+                            </Typography>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Email */}
+                      {receiverData?.email && (
+                        <div className="flex items-center">
+                          <EmailIcon
+                            className={`mr-3 ${
+                              lightTheme ? "text-blue-500" : "text-blue-400"
+                            }`}
+                            fontSize="small"
+                          />
+                          <div>
+                            <Typography
+                              variant="body2"
+                              className={`text-xs ${
+                                lightTheme ? "text-gray-500" : "text-gray-400"
+                              }`}
+                            >
+                              Email
+                            </Typography>
+                            <Typography
+                              variant="body1"
+                              className={
+                                lightTheme ? "text-gray-800" : "text-gray-200"
+                              }
+                            >
+                              {receiverData.email}
+                            </Typography>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Joined Date */}
+                      {receiverData?.createdAt && (
+                        <div className="flex items-center">
+                          <CalendarTodayIcon
+                            className={`mr-3 ${
+                              lightTheme ? "text-blue-500" : "text-blue-400"
+                            }`}
+                            fontSize="small"
+                          />
+                          <div>
+                            <Typography
+                              variant="body2"
+                              className={`text-xs ${
+                                lightTheme ? "text-gray-500" : "text-gray-400"
+                              }`}
+                            >
+                              Joined
+                            </Typography>
+                            <Typography
+                              variant="body1"
+                              className={
+                                lightTheme ? "text-gray-800" : "text-gray-200"
+                              }
+                            >
+                              {formatJoinDate(receiverData.createdAt)}
+                            </Typography>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </Box>
                 </div>
-              </Collapse>
-            )}
-          </div>
+              </div>
+            </Collapse>
+          )}
         </div>
       </div>
     </div>
