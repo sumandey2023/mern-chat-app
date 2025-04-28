@@ -2,9 +2,8 @@ import React, { useEffect, useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import Lottie from "lottie-react";
-import api from "../../config/axios";
+import api from "../config/api";
 import { Avatar } from "@mui/material";
 
 const Chats = () => {

@@ -19,8 +19,7 @@ import {
 
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import api from "../../config/axios";
-import BASE_URL from "../../config/api";
+import api from "../config/api";
 
 const CreateGroup = () => {
   const lightTheme = useSelector((state) => state.themeKey);

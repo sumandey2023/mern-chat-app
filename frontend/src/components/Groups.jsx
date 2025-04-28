@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import api from "../../config/axios";
+import api from "../config/api";
 import GroupItem from "./GroupItem";
 
 const Groups = () => {

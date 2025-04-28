@@ -15,9 +15,7 @@ import defaultProfile from "../assets/profile.webp";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import axios from "axios";
-import api from "../../config/axios";
-import BASE_URL from "../../config/api";
+import api from "../config/api";
 import "react-toastify/dist/ReactToastify.css";
 
 const Auth = () => {

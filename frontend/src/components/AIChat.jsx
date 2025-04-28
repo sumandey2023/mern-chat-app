@@ -10,7 +10,7 @@ import { useSelector } from "react-redux";
 import Lottie from "lottie-react";
 import MessageSelf from "./MessageSelf";
 import MessageOther from "./MessageOther";
-import api from "../../config/axios";
+import api from "../config/api";
 
 const AIChat = () => {
   const [userData, setUserData] = useState({});

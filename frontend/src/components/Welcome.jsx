@@ -2,9 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import { useSelector } from "react-redux";
-import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
-import api from "../../config/axios";
+import api from "../config/api";
 
 const Welcome = () => {
   const navigate = useNavigate();

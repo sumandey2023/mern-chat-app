@@ -18,7 +18,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import defaultProfile from "../assets/profile.webp";
 import toast, { Toaster } from "react-hot-toast";
-import api from "../../config/axios";
+import api from "../config/api";
 
 const Profile = () => {
   const lightTheme = useSelector((state) => state.themeKey);

@@ -3,9 +3,8 @@ import React, { useEffect, useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { Avatar } from "@mui/material";
-import api from "../../config/axios";
+import api from "../config/api";
 const Public = () => {
   const lightTheme = useSelector((state) => state.themeKey);
   const navigate = useNavigate();

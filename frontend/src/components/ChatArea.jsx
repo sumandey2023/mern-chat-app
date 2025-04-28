@@ -27,10 +27,9 @@ import {
 import { useMediaQuery } from "react-responsive";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import api from "../../config/axios";
+import api from "../config/api";
 import EmojiPicker from "emoji-picker-react";
 import { io } from "socket.io-client";
-import BASE_URL from "../../config/api";
 import { format } from "date-fns";
 
 const ChatArea = () => {

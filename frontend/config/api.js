@@ -12,4 +12,30 @@ const api = axios.create({
   },
 });
 
+// Add request interceptor to handle errors
+api.interceptors.request.use(
+  (config) => {
+    // You can add any request modifications here
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to handle errors
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response?.status === 401) {
+      // Handle unauthorized access
+      localStorage.removeItem("token");
+      window.location.href = "/";
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

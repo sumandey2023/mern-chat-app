@@ -19,8 +19,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleTheme } from "../Features/theamSlice";
-import BASE_URL from "../../config/api";
-import api from "../../config/axios";
+import api from "../config/api";
 
 const SideNavChatList = () => {
   const [data, setData] = useState([]);
@@ -61,7 +60,7 @@ const SideNavChatList = () => {
     const fetchUsers = async () => {
       try {
         const res = await fetch(
-          `${BASE_URL}/user/searchUsers?search=${search}`,
+          `${api.defaults.baseURL}/user/searchUsers?search=${search}`,
           {
             credentials: "include",
             headers: {
@@ -98,7 +97,7 @@ const SideNavChatList = () => {
   }, [search]);
 
   useEffect(() => {
-    socket.current = io(BASE_URL);
+    socket.current = io(api.defaults.baseURL);
 
     // Listen for online users updates
     socket.current.on("getUsers", (users) => {
