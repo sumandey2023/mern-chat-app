@@ -190,8 +190,8 @@ const SideNavChatList = () => {
     },
     {
       icon: <QrCodeIcon className="text-white" />,
-      label: "Public",
-      action: () => navigate("public"),
+      label: "Share Profile",
+      action: () => navigate("profileShare"),
     },
     {
       icon: <VideocamIcon className="text-white" />,

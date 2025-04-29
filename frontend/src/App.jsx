@@ -16,6 +16,7 @@ import Profile from "./components/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Public from "./components/Public";
 import GroupChatArea from "./components/GroupChatArea";
+import ProfileShare from "./components/ProfileShare";
 
 const App = () => {
   const isSmallScreen = useMediaQuery({ maxWidth: 1150 });
@@ -65,6 +66,7 @@ const App = () => {
           <Route path="profile" element={<Profile />} />
           <Route path="public" element={<Public />} />
           <Route path="group/:id" element={<GroupChatArea />} />
+          <Route path="profileShare" element={<ProfileShare />} />
         </Route>
       </Routes>
     </div>
