@@ -91,7 +91,6 @@ const ChatArea = () => {
 
     addCurrentUser();
 
-    // Clean up on component unmount
     return () => {
       socket.current.disconnect();
     };
@@ -149,6 +148,29 @@ const ChatArea = () => {
     };
     fetchChat();
   }, [id]);
+
+  useEffect(() => {
+    const addUserToChatList = async (userId) => {
+      try {
+        const res = await api.post(
+          "/user/add-to-chat-list",
+          { userId },
+          { withCredentials: true }
+        );
+        if (res.status === 200) {
+          console.log("User added to chat list successfully");
+          // Refresh chat list after successful addition
+          fetchChatList();
+        } else {
+          console.error("Failed to add user to chat list");
+        }
+      } catch (error) {
+        console.error("Error adding user to chat list:", error);
+      }
+    };
+
+    addUserToChatList(id);
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
