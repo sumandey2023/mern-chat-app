@@ -13,6 +13,7 @@ import ChatIcon from "@mui/icons-material/Chat";
 import SearchIcon from "@mui/icons-material/Search";
 import SunnyIcon from "@mui/icons-material/Sunny";
 import CloseIcon from "@mui/icons-material/Close";
+import DocumentScannerIcon from "@mui/icons-material/DocumentScanner";
 import {
   IconButton,
   Tooltip,
@@ -169,11 +170,6 @@ const SideNavChatList = () => {
   // Navigation items for cleaner rendering
   const navigationItems = [
     {
-      icon: <ChatIcon className="text-white" />,
-      label: "Chats",
-      action: () => navigate("chats"),
-    },
-    {
       icon: <GroupIcon className="text-white" />,
       label: "Groups",
       action: () => navigate("groups"),
@@ -192,6 +188,11 @@ const SideNavChatList = () => {
       icon: <QrCodeIcon className="text-white" />,
       label: "Share Profile",
       action: () => navigate("profileShare"),
+    },
+    {
+      icon: <DocumentScannerIcon className="text-white" />,
+      label: "scanner",
+      action: () => navigate("scanner"),
     },
     {
       icon: <VideocamIcon className="text-white" />,

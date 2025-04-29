@@ -16,6 +16,7 @@
     "@mui/material": "^7.0.0",
     "@reduxjs/toolkit": "^2.6.1",
     "@tailwindcss/vite": "^4.0.17",
+    "@zxing/library": "^0.21.3",
     "axios": "^1.9.0",
     "date-fns": "^4.1.0",
     "emoji-picker-react": "^4.12.2",
