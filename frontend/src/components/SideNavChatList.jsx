@@ -197,7 +197,7 @@ const SideNavChatList = () => {
     {
       icon: <VideocamIcon className="text-white" />,
       label: "Video",
-      action: () => {},
+      action: () => navigate("videoChat"),
       badge: 2, // Example badge count
     },
   ];

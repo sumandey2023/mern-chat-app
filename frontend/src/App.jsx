@@ -18,6 +18,7 @@ import Public from "./components/Public";
 import GroupChatArea from "./components/GroupChatArea";
 import ProfileShare from "./components/ProfileShare";
 import Scanner from "./components/Scanner";
+import VideoChat from "./components/VideoChat";
 
 const App = () => {
   const isSmallScreen = useMediaQuery({ maxWidth: 1150 });
@@ -68,6 +69,7 @@ const App = () => {
           <Route path="public" element={<Public />} />
           <Route path="group/:id" element={<GroupChatArea />} />
           <Route path="profileShare" element={<ProfileShare />} />
+          <Route path="videoChat" element={<VideoChat />} />
         </Route>
       </Routes>
     </div>
