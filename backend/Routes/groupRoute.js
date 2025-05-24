@@ -21,7 +21,12 @@ Router.post("/createGroup", upload.single("pic"), isLoggedIn, createGroup);
 Router.get("/getGroups", isLoggedIn, getGroupsForUser);
 Router.get("/groupDetails/:id", isLoggedIn, getGroupDetails);
 Router.get("/groupMemberList/:id", isLoggedIn, getGroupMemberList);
-Router.post("/sendMessage/:id", isLoggedIn, sendGroupMessage);
+Router.post(
+  "/sendMessage/:id",
+  upload.single("pic"),
+  isLoggedIn,
+  sendGroupMessage
+);
 Router.get("/allChats/:id", isLoggedIn, getAllChatOfGroup);
 Router.post("/addNewMember", isLoggedIn, addNewMembersToGroup);
 Router.post("/removeMember/:id", isLoggedIn, removeMemberFromGroup);

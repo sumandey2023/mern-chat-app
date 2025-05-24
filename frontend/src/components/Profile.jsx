@@ -29,6 +29,7 @@ const Profile = () => {
     profilePic: defaultProfile,
   });
   const [uploadedImage, setUploadedImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null); // store actual file
 
   useEffect(() => {
     const getUser = async () => {
@@ -54,6 +55,7 @@ const Profile = () => {
       const imageURL = URL.createObjectURL(file);
       setUploadedImage(imageURL);
       setProfileData({ ...profileData, profilePic: imageURL });
+      setImageFile(file); // set file to send to backend
     }
   };
 
@@ -61,15 +63,40 @@ const Profile = () => {
     setProfileData({ ...profileData, name: e.target.value });
   };
 
-  const handleSave = () => {
-    toast.success("Profile updated successfully!");
-    // Here you can send updated name to backend
+  const handleSave = async () => {
+    try {
+      const formData = new FormData();
+      formData.append("name", profileData.name);
+      if (imageFile) {
+        formData.append("pic", imageFile); // this will be available as req.file
+      }
+
+      // toast.info("Updating profile...");
+      // toast.info("Updating profile...");
+      toast("Updating profile...");
+
+      console.log("run");
+
+      const changedData = await api.post("/user/update-profile", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        withCredentials: true,
+      });
+      console.log("changedData", changedData);
+      // setUserData(changedData.data.user);
+
+      toast.success("Profile updated successfully!");
+    } catch (error) {
+      console.error("Update failed:", error);
+      toast.error(error.response?.data?.message || "Failed to update profile.");
+      // toast.error("Failed to update profile.");
+    }
   };
 
   const handleLogout = async () => {
     try {
       const loadingToast = toast.loading("Logging out...");
-
       await api.post(
         "/user/logout",
         {},
@@ -80,11 +107,9 @@ const Profile = () => {
           },
         }
       );
-
       localStorage.clear();
       toast.dismiss(loadingToast);
       toast.success("Logged out successfully!");
-
       setTimeout(() => {
         navigate("/", { state: { toastMessage: "Logged out successfully!" } });
       }, 500);
@@ -113,7 +138,6 @@ const Profile = () => {
           },
         }}
       >
-        {/* Header */}
         <Typography
           variant="h5"
           component="h1"
@@ -128,7 +152,7 @@ const Profile = () => {
           My Profile
         </Typography>
 
-        {/* Profile Picture Upload */}
+        {/* Profile Image */}
         <Box className="flex flex-col items-center mb-4">
           <Box className="relative">
             <input
@@ -146,9 +170,7 @@ const Profile = () => {
                 height: 96,
                 border: `3px solid ${lightTheme ? "#3498DB" : "#4DD0E1"}`,
                 boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                "&:hover": {
-                  opacity: 0.9,
-                },
+                "&:hover": { opacity: 0.9 },
               }}
             />
             <label
@@ -163,7 +185,6 @@ const Profile = () => {
             sx={{
               mt: 1.5,
               color: lightTheme ? "#666" : "#BBB",
-              display: "block",
               textAlign: "center",
             }}
           >
@@ -171,177 +192,77 @@ const Profile = () => {
           </Typography>
         </Box>
 
-        <Divider
-          sx={{
-            my: 3,
-            borderColor: lightTheme
-              ? "rgba(0,0,0,0.08)"
-              : "rgba(255,255,255,0.08)",
+        <Divider sx={{ my: 3 }} />
+
+        {/* Name Input */}
+        <TextField
+          fullWidth
+          label="Name"
+          variant="outlined"
+          margin="normal"
+          value={profileData.name}
+          onChange={handleInputChange}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <AccountCircleIcon
+                  sx={{ color: lightTheme ? "#3498DB" : "#4DD0E1" }}
+                />
+              </InputAdornment>
+            ),
+            sx: {
+              backgroundColor: lightTheme ? "#ffffff" : "#3C3D37",
+              borderRadius: "10px",
+              "& input": { padding: "12px 14px" },
+            },
           }}
         />
 
-        {/* Form Fields */}
-        <Box sx={{ mb: 3 }}>
-          <Typography
-            variant="subtitle1"
-            sx={{
-              mb: 2,
-              fontWeight: 600,
-              color: lightTheme ? "#34495E" : "#B0BEC5",
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-            }}
-          >
-            <span style={{ flexGrow: 1 }}>Personal Information</span>
-          </Typography>
-
-          {/* Name (Editable) */}
-          <TextField
-            fullWidth
-            label="Name"
-            variant="outlined"
-            margin="normal"
-            value={profileData.name}
-            onChange={handleInputChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <AccountCircleIcon
-                    sx={{
-                      color: lightTheme ? "#3498DB" : "#4DD0E1",
-                    }}
-                  />
-                </InputAdornment>
-              ),
-              sx: {
-                backgroundColor: lightTheme ? "#ffffff" : "#3C3D37",
-                borderRadius: "10px",
-                "& input": {
-                  padding: "12px 14px",
-                },
-              },
-            }}
-            sx={{
-              mb: 2.5,
-              "& .MuiOutlinedInput-root": {
-                "&:hover fieldset": {
-                  borderColor: lightTheme ? "#3498DB" : "#4DD0E1",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: lightTheme ? "#3498DB" : "#4DD0E1",
-                  borderWidth: "1px",
-                },
-              },
-              "& .MuiInputLabel-root": {
-                transform: "translate(14px, 14px) scale(1)",
-                "&.Mui-focused": {
-                  transform: "translate(14px, -9px) scale(0.75)",
-                  color: lightTheme ? "#3498DB" : "#4DD0E1",
-                },
-                "&.MuiFormLabel-filled": {
-                  transform: "translate(14px, -9px) scale(0.75)",
-                },
-              },
-            }}
-          />
-
-          {/* Username (Read-only) */}
-          <TextField
-            fullWidth
-            label="Username"
-            variant="outlined"
-            margin="normal"
-            value={userData.user?.username || ""}
-            InputProps={{
-              readOnly: true,
-              startAdornment: (
-                <InputAdornment position="start">
-                  <AccountCircleIcon sx={{ color: "#888" }} />
-                </InputAdornment>
-              ),
-              sx: {
-                backgroundColor: lightTheme ? "#f5f7fa" : "#2a2a2a",
-                borderRadius: "10px",
-                "& input": {
-                  padding: "12px 14px",
-                  color: lightTheme ? "#555" : "#AAA",
-                },
-              },
-            }}
-            sx={{
-              mb: 2.5,
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  borderColor: lightTheme
-                    ? "rgba(0,0,0,0.1)"
-                    : "rgba(255,255,255,0.1)",
-                },
-              },
-              "& .MuiInputLabel-root": {
-                transform: "translate(14px, 14px) scale(1)",
-                "&.Mui-focused": {
-                  transform: "translate(14px, -9px) scale(0.75)",
-                },
-                "&.MuiFormLabel-filled": {
-                  transform: "translate(14px, -9px) scale(0.75)",
-                },
-              },
-            }}
-          />
-
-          {/* Email (Read-only) */}
-          <TextField
-            fullWidth
-            label="Email"
-            variant="outlined"
-            margin="normal"
-            value={userData.user?.email || ""}
-            InputProps={{
-              readOnly: true,
-              startAdornment: (
-                <InputAdornment position="start">
-                  <EmailIcon sx={{ color: "#888" }} />
-                </InputAdornment>
-              ),
-              sx: {
-                backgroundColor: lightTheme ? "#f5f7fa" : "#2a2a2a",
-                borderRadius: "10px",
-                "& input": {
-                  padding: "12px 14px",
-                  color: lightTheme ? "#555" : "#AAA",
-                },
-              },
-            }}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  borderColor: lightTheme
-                    ? "rgba(0,0,0,0.1)"
-                    : "rgba(255,255,255,0.1)",
-                },
-              },
-              "& .MuiInputLabel-root": {
-                transform: "translate(14px, 14px) scale(1)",
-                "&.Mui-focused": {
-                  transform: "translate(14px, -9px) scale(0.75)",
-                },
-                "&.MuiFormLabel-filled": {
-                  transform: "translate(14px, -9px) scale(0.75)",
-                },
-              },
-            }}
-          />
-        </Box>
-
-        <Divider
-          sx={{
-            my: 3,
-            borderColor: lightTheme
-              ? "rgba(0,0,0,0.08)"
-              : "rgba(255,255,255,0.08)",
+        {/* Username Read-Only */}
+        <TextField
+          fullWidth
+          label="Username"
+          variant="outlined"
+          margin="normal"
+          value={userData.user?.username || ""}
+          InputProps={{
+            readOnly: true,
+            startAdornment: (
+              <InputAdornment position="start">
+                <AccountCircleIcon sx={{ color: "#888" }} />
+              </InputAdornment>
+            ),
+            sx: {
+              backgroundColor: lightTheme ? "#f5f7fa" : "#2a2a2a",
+              borderRadius: "10px",
+              "& input": { color: lightTheme ? "#555" : "#AAA" },
+            },
           }}
         />
+
+        {/* Email Read-Only */}
+        <TextField
+          fullWidth
+          label="Email"
+          variant="outlined"
+          margin="normal"
+          value={userData.user?.email || ""}
+          InputProps={{
+            readOnly: true,
+            startAdornment: (
+              <InputAdornment position="start">
+                <EmailIcon sx={{ color: "#888" }} />
+              </InputAdornment>
+            ),
+            sx: {
+              backgroundColor: lightTheme ? "#f5f7fa" : "#2a2a2a",
+              borderRadius: "10px",
+              "& input": { color: lightTheme ? "#555" : "#AAA" },
+            },
+          }}
+        />
+
+        <Divider sx={{ my: 3 }} />
 
         {/* Buttons */}
         <Box sx={{ display: "flex", gap: 2 }}>
@@ -349,20 +270,17 @@ const Profile = () => {
             variant="contained"
             fullWidth
             startIcon={<SaveIcon />}
+            onClick={handleSave}
             sx={{
               backgroundColor: lightTheme ? "#3498DB" : "#4DD0E1",
               color: "white",
               textTransform: "none",
               padding: "10px",
               borderRadius: "10px",
-              boxShadow: "none",
               "&:hover": {
                 backgroundColor: lightTheme ? "#2980B9" : "#26C6DA",
-                boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
               },
-              transition: "all 0.2s ease",
             }}
-            onClick={handleSave}
           >
             Save Changes
           </Button>
@@ -370,8 +288,8 @@ const Profile = () => {
           <Button
             variant="outlined"
             fullWidth
-            onClick={handleLogout}
             startIcon={<LogoutIcon />}
+            onClick={handleLogout}
             sx={{
               borderColor: lightTheme ? "#E74C3C" : "#FF5252",
               color: lightTheme ? "#E74C3C" : "#FF5252",
@@ -382,9 +300,7 @@ const Profile = () => {
                 backgroundColor: lightTheme
                   ? "rgba(231, 76, 60, 0.08)"
                   : "rgba(255, 82, 82, 0.08)",
-                borderColor: lightTheme ? "#E74C3C" : "#FF5252",
               },
-              transition: "all 0.2s ease",
             }}
           >
             Logout

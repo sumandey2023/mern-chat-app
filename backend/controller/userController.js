@@ -140,6 +140,7 @@ const signupController = asyncHandler(async (req, res) => {
   const hash = await bcrypt.hash(password, salt);
 
   let picUrl;
+  console.log("File: ", req.file);
 
   if (req.file) {
     try {
@@ -154,6 +155,7 @@ const signupController = asyncHandler(async (req, res) => {
       return res.status(500).json({ message: "Image upload failed" });
     }
   }
+  console.log(picUrl);
 
   const newUser = await userModel.create({
     name,
@@ -365,6 +367,49 @@ const chatlist = asyncHandler(async (req, res) => {
   }
 });
 
+const updateUserDetails = asyncHandler(async (req, res) => {
+  const { name } = req.body;
+  if (!req.file) {
+    return res.status(400).json({ message: "Select a new image" });
+  }
+  let picUrl;
+  console.log(req.file);
+  if (req.file) {
+    try {
+      const buffer = req.file.buffer.toString("base64");
+      const result = await cloudinary.uploader.upload(
+        `data:${req.file.mimetype};base64,${buffer}`,
+        { public_id: name + Math.random() }
+      );
+      picUrl = result.secure_url;
+    } catch (error) {
+      console.error("Cloudinary upload failed", error);
+      return res.status(500).json({ message: "Image upload failed" });
+    }
+  }
+  const user = await userModel.findByIdAndUpdate(
+    req.user._id,
+    {
+      name: name,
+      pic: picUrl,
+    },
+    { new: true }
+  );
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  return res.status(200).json({
+    message: "User updated successfully",
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      username: user.username,
+      pic: user.pic,
+    },
+  });
+});
+
 module.exports = {
   signupController,
   loginController,
@@ -375,4 +420,5 @@ module.exports = {
   getChatUser,
   addToChatList,
   chatlist,
+  updateUserDetails,
 };
