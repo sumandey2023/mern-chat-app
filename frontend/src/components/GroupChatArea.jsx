@@ -1357,7 +1357,7 @@ const GroupChatArea = () => {
                   <List
                     className={`${
                       lightTheme ? "bg-gray-50" : "bg-[#3C3D37]"
-                    } rounded-lg overflow-y-auto no-scrollbar max-h-[240px]`}
+                    } rounded-lg overflow-y-auto no-scrollbar max-h-[200px]`}
                   >
                     {memberList.map((member) => (
                       <ListItem
