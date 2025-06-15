@@ -50,9 +50,14 @@ const Auth = () => {
 
   useEffect(() => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("addatoken");
+
       if (token) {
         navigate("/app/welcome");
+        console.log("if run");
+      } else {
+        navigate("/");
+        console.log("else run");
       }
     } catch (error) {
       toast.error("Something went wrong", { position: "top-right" });
@@ -98,7 +103,7 @@ const Auth = () => {
         { withCredentials: true }
       );
 
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("addatoken", data.token);
       navigate("/app/welcome", { state: { toastMessage: data.message } });
     } catch (error) {
       console.log(error.response);
@@ -136,7 +141,7 @@ const Auth = () => {
         withCredentials: true,
       });
 
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("addatoken", data.token);
 
       navigate("/app/welcome", { state: { toastMessage: data.message } });
     } catch (error) {
