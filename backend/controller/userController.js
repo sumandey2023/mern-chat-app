@@ -369,9 +369,9 @@ const chatlist = asyncHandler(async (req, res) => {
 
 const updateUserDetails = asyncHandler(async (req, res) => {
   const { name } = req.body;
-  if (!req.file) {
-    return res.status(400).json({ message: "Select a new image" });
-  }
+  // if (!req.file) {
+  //   return res.status(400).json({ message: "Select a new image or name" });
+  // }
   let picUrl;
   console.log(req.file);
   if (req.file) {
