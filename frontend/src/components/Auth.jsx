@@ -48,21 +48,21 @@ const Auth = () => {
     pic: "",
   });
 
-  useEffect(() => {
-    try {
-      const token = localStorage.getItem("addatoken");
+  // useEffect(() => {
+  //   try {
+  //     const token = localStorage.getItem("addatoken");
 
-      if (token) {
-        navigate("/app/welcome");
-        console.log("if run");
-      } else {
-        navigate("/");
-        console.log("else run");
-      }
-    } catch (error) {
-      toast.error("Something went wrong", { position: "top-right" });
-    }
-  }, []);
+  //     if (token) {
+  //       navigate("/app/welcome");
+  //       console.log("if run");
+  //     } else {
+  //       navigate("/");
+  //       console.log("else run");
+  //     }
+  //   } catch (error) {
+  //     toast.error("Something went wrong", { position: "top-right" });
+  //   }
+  // }, []);
 
   useEffect(() => {
     if (redirectMessage) {
