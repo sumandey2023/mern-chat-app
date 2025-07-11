@@ -28,7 +28,7 @@ const io = new Server(server, {
 db();
 
 // CORS configuration
-const allowedOrigins = ["http://localhost:3000", "https://adda-pi.vercel.app"];
+const allowedOrigins = ["http://localhost:5173", "https://adda-pi.vercel.app"];
 
 app.use(
   cors({
