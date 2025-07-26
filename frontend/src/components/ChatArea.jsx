@@ -167,7 +167,7 @@ const ChatArea = () => {
         if (res.status === 200) {
           console.log("User added to chat list successfully");
           // Refresh chat list after successful addition
-          fetchChatList();
+          // fetchChatList();
         } else {
           console.error("Failed to add user to chat list");
         }
@@ -732,7 +732,7 @@ const ChatArea = () => {
               } transition-all duration-300 sticky bottom-0 z-10`}
             >
               <div className="flex items-center gap-2">
-                <Tooltip title="Attach File">
+                <Tooltip title="Attach Files (Images, Videos, Audio, PDF, Word, Excel, PowerPoint, Text, ZIP)">
                   <IconButton
                     size="small"
                     className={`flex-shrink-0 hover:scale-110 transition-transform duration-300 ${
@@ -750,7 +750,7 @@ const ChatArea = () => {
                       multiple
                       className="hidden"
                       onChange={handleFileChange}
-                      accept="image/*,video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      accept="image/*,video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,application/zip,application/x-rar-compressed"
                     />
                   </IconButton>
                 </Tooltip>

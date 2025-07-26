@@ -27,8 +27,8 @@ const MessageOther = ({
   // Dynamic styling based on theme
   const bubbleStyle = hasText
     ? lightTheme
-      ? "bg-white text-gray-800 border border-gray-100"
-      : "bg-gray-700 text-gray-100 border border-gray-700"
+      ? "bg-white text-gray-800 "
+      : "bg-gray-700 text-gray-100 "
     : "text-gray-100";
 
   const timeStyle = lightTheme ? "text-gray-400" : "text-gray-400";
@@ -66,16 +66,17 @@ const MessageOther = ({
 
       {/* Message bubble or media */}
       <div
-        className={`px-3 py-2 pb-6 min-w-[100px] max-w-[70vw] sm:max-w-[55vw] rounded-t-xl rounded-br-xl rounded-bl-lg shadow-sm relative transition-all duration-200
+        className={`px-3 py-2 pb-6 min-w-[100px] max-w-[70vw] sm:max-w-[55vw] rounded-t-xl rounded-br-xl rounded-bl-lg relative transition-all duration-200
           ${bubbleStyle}
-          ${hasMedia ? "p-0 bg-transparent border-none shadow-none" : ""}`}
+          ${hasMedia ? "p-0 bg-transparent border-none shadow-none" : ""}
+          `}
       >
         {/* Media only if present, otherwise text */}
         {hasMedia && (
           <div className="flex flex-col items-start gap-2">
             {/* Image */}
             {hasImage && (
-              <div className="rounded-lg overflow-hidden shadow :border-gray-700 max-w-[300px] max-h-[300px] bg-transparent">
+              <div className="rounded-lg overflow-hidden  max-w-[300px] max-h-[300px] bg-transparent">
                 <img
                   src={image}
                   alt="Message image"
@@ -87,7 +88,7 @@ const MessageOther = ({
             )}
             {/* Video */}
             {hasVideo && (
-              <div className="rounded-lg overflow-hidden shadow border border-gray-200 dark:border-gray-700 max-w-[300px] max-h-[300px] bg-transparent">
+              <div className="rounded-lg overflow-hidden dark: max-w-[300px] max-h-[300px] bg-transparent">
                 <video
                   controls
                   className="w-full h-auto max-h-[300px] object-cover"
@@ -102,7 +103,7 @@ const MessageOther = ({
             )}
             {/* Audio */}
             {hasAudio && (
-              <div className="rounded-lg shadow border border-gray-200 dark:border-gray-700 p-2 w-[300px] flex flex-col items-center bg-transparent">
+              <div className="rounded-lg dark:p-2 w-[85vw] max-w-[220px] min-w-[100px] flex flex-col items-center bg-transparent mx-auto">
                 <audio controls className="w-full">
                   <source src={audio} type="audio/mpeg" />
                   <source src={audio} type="audio/wav" />
@@ -113,11 +114,13 @@ const MessageOther = ({
             {/* File */}
             {hasFile && (
               <div
-                className="flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors duration-200 shadow border border-gray-200 dark:border-gray-700 w-[300px] bg-transparent"
+                className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors duration-200 dark: w-full max-w-[300px] sm:w-[300px] ${
+                  lightTheme ? "bg-gray-100" : "bg-gray-700"
+                } text-black`}
                 onClick={() => handleFileClick(file)}
               >
                 <svg
-                  className="w-6 h-6 text-gray-500 dark:text-gray-400"
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-gray-400 flex-shrink-0"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -127,9 +130,18 @@ const MessageOther = ({
                     clipRule="evenodd"
                   />
                 </svg>
-                <span className="text-xs font-medium truncate">
-                  Download File
-                </span>
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span
+                    className={`text-xs font-medium truncate ${
+                      !lightTheme ? "text-white" : "text-black"
+                    }`}
+                  >
+                    {file.split("/").pop() || "Download File"}
+                  </span>
+                  <span className="text-[10px] text-blue-600">
+                    Click to download
+                  </span>
+                </div>
               </div>
             )}
           </div>

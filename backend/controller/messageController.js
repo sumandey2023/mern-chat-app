@@ -58,11 +58,12 @@ const sendMessage = asyncHandler(async (req, res) => {
           });
           newMessages.push(newMessage);
         } else {
-          const file = await uploadFile(file);
+          const uploadedFile = await uploadFile(file);
+
           const newMessage = await messageModel.create({
             senderId: logedInUserId,
             receiverId: userToChatId,
-            file: file.url,
+            file: uploadedFile.url,
           });
           newMessages.push(newMessage);
         }

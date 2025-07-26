@@ -20,7 +20,7 @@ const MessageSelf = ({ text, time, isTemp, image, video, audio, file }) => {
   return (
     <div className="flex justify-end mb-4">
       <div
-        className={`max-w-[70%] px-3 pt-2 pb-6 min-w-[100px] sm:max-w-[55vw] rounded-t-xl rounded-bl-xl rounded-br-lg shadow-sm relative transition-all duration-200
+        className={`max-w-[70%] px-3 pt-2 pb-6 min-w-[100px] sm:max-w-[55vw] rounded-t-xl rounded-bl-xl rounded-br-lg  relative transition-all duration-200
           ${
             hasText
               ? lightTheme
@@ -28,7 +28,8 @@ const MessageSelf = ({ text, time, isTemp, image, video, audio, file }) => {
                 : "bg-blue-600 text-white"
               : "text-white"
           }
-          ${hasMedia ? "p-0 bg-transparent border-none shadow-none" : ""}`}
+          ${hasMedia ? "p-0 bg-transparent border-none shadow-none" : ""}
+          `}
       >
         {/* Media only if present, otherwise text */}
         {hasMedia && (
@@ -62,7 +63,7 @@ const MessageSelf = ({ text, time, isTemp, image, video, audio, file }) => {
             )}
             {/* Audio */}
             {hasAudio && (
-              <div className="rounded-lg  dark:p-2 w-[300px] flex flex-col items-center bg-transparent mb-0">
+              <div className="rounded-lg dark:p-2 w-[85vw] max-w-[220px] min-w-[100px] flex flex-col items-center bg-transparent mb-0 mx-auto">
                 <audio controls className="w-full">
                   <source src={audio} type="audio/mpeg" />
                   <source src={audio} type="audio/wav" />
@@ -73,11 +74,13 @@ const MessageSelf = ({ text, time, isTemp, image, video, audio, file }) => {
             {/* File */}
             {hasFile && (
               <div
-                className="flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors duration-200 shadow border border-blue-300 dark:border-blue-400 w-[300px] bg-transparent mb-0"
+                className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors duration-200 dark: w-full max-w-[300px] sm:w-[300px] ${
+                  lightTheme ? "bg-blue-500" : "bg-blue-600"
+                } text-black`}
                 onClick={() => handleFileClick(file)}
               >
                 <svg
-                  className="w-6 h-6 text-blue-500 dark:text-blue-200"
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-gray-100 flex-shrink-0"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -87,9 +90,22 @@ const MessageSelf = ({ text, time, isTemp, image, video, audio, file }) => {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span className="text-xs font-medium truncate">
-                  Download File
-                </span>
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span
+                    className={`text-xs   font-medium truncate ${
+                      !lightTheme ? "text-white" : "text-white"
+                    }`}
+                  >
+                    {file.split("/").pop() || "Download File"}
+                  </span>
+                  <span
+                    className={`text-[10px] ${
+                      !lightTheme ? "text-gray-100" : "text-gray-100"
+                    }`}
+                  >
+                    Click to download
+                  </span>
+                </div>
               </div>
             )}
             {/* Timestamp for media messages in black color, compact */}
