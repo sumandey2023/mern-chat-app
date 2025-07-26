@@ -65,6 +65,13 @@ const Auth = () => {
   // }, []);
 
   useEffect(() => {
+    const token = localStorage.getItem("addatoken");
+    if (token) {
+      navigate("/app/welcome");
+    }
+  }, []);
+
+  useEffect(() => {
     if (redirectMessage) {
       toast.info(redirectMessage, { position: "top-right" });
       navigate(location.pathname, { replace: true });
