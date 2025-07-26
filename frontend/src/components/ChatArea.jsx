@@ -13,6 +13,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import AlternateEmailIcon from "@mui/icons-material/AlternateEmail";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import ChatIcon from "@mui/icons-material/Chat";
+import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 
 import {
   Avatar,
@@ -53,6 +54,8 @@ const ChatArea = () => {
   const socket = useRef();
   const typingTimeoutRef = useRef(null);
   const { id } = useParams();
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const fileInputRef = useRef(null);
 
   // Initialize socket connection
   useEffect(() => {
@@ -62,7 +65,11 @@ const ChatArea = () => {
 
     // Listen for events
     socket.current.on("receiveMessage", (data) => {
-      setMessages((prev) => [...prev, data]);
+      if (Array.isArray(data)) {
+        setMessages((prev) => [...prev, ...data]);
+      } else {
+        setMessages((prev) => [...prev, data]);
+      }
     });
 
     socket.current.on("userTyping", (data) => {
@@ -213,7 +220,108 @@ const ChatArea = () => {
     }
   }, [id]);
 
+  const handleAttachClick = () => {
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handleFileChange = (e) => {
+    setSelectedFiles(Array.from(e.target.files));
+  };
+
+  const handleRemoveFile = (index) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSendMessage = async () => {
+    if (selectedFiles.length > 0) {
+      // Create a temporary message object for files
+      const tempId = Date.now().toString();
+      const tempMessage = {
+        _id: tempId,
+        senderId: loggedInUser._id,
+        receiverId: id,
+        createdAt: new Date().toISOString(),
+        isTemp: true,
+        files: selectedFiles.map((file) => ({
+          name: file.name,
+          type: file.type,
+          preview:
+            file.type.startsWith("image/") || file.type.startsWith("video/")
+              ? URL.createObjectURL(file)
+              : undefined,
+        })),
+        image: selectedFiles.find((f) => f.type.startsWith("image/"))
+          ? URL.createObjectURL(
+              selectedFiles.find((f) => f.type.startsWith("image/"))
+            )
+          : undefined,
+        video: selectedFiles.find((f) => f.type.startsWith("video/"))
+          ? URL.createObjectURL(
+              selectedFiles.find((f) => f.type.startsWith("video/"))
+            )
+          : undefined,
+        audio: selectedFiles.find((f) => f.type.startsWith("audio/"))
+          ? URL.createObjectURL(
+              selectedFiles.find((f) => f.type.startsWith("audio/"))
+            )
+          : undefined,
+        file: selectedFiles.find(
+          (f) =>
+            !f.type.startsWith("image/") &&
+            !f.type.startsWith("video/") &&
+            !f.type.startsWith("audio/")
+        )
+          ? selectedFiles.find(
+              (f) =>
+                !f.type.startsWith("image/") &&
+                !f.type.startsWith("video/") &&
+                !f.type.startsWith("audio/")
+            ).name
+          : undefined,
+      };
+      setMessages((prev) => [...prev, tempMessage]);
+      setSelectedFiles([]);
+      setTimeout(() => {
+        const chatContainer = document.querySelector(".chat-container");
+        if (chatContainer) {
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      }, 0);
+      const formData = new FormData();
+      selectedFiles.forEach((file) => {
+        formData.append("files", file);
+      });
+      try {
+        const { data } = await api.post(`/message/send/${id}`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+        });
+        // If data is an array (files), handle each message
+        if (Array.isArray(data)) {
+          data.forEach((msg) => {
+            socket.current.emit("sendMessage", msg);
+          });
+          // Replace all temp messages with real ones (remove all isTemp, add all real)
+          setMessages((prev) => [
+            ...prev.filter((msg) => !msg.isTemp),
+            ...data.map((msg) => ({ ...msg, isTemp: false })),
+          ]);
+        } else {
+          socket.current.emit("sendMessage", data);
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg._id === tempId ? { ...data, isTemp: false } : msg
+            )
+          );
+        }
+      } catch (error) {
+        setMessages((prev) => prev.filter((msg) => msg._id !== tempId));
+        toast.error("Failed to send file(s). Please try again.");
+      }
+      return;
+    }
     if (!messageToBeSend.trim()) return;
 
     // Create a temporary message object
@@ -553,6 +661,7 @@ const ChatArea = () => {
                   );
                 } else {
                   const message = item.data;
+
                   const time = formatTime(message.createdAt);
                   return message.senderId === loggedInUser._id ? (
                     <MessageSelf
@@ -560,6 +669,10 @@ const ChatArea = () => {
                       text={message.text}
                       time={time}
                       isTemp={message.isTemp}
+                      image={message.image}
+                      video={message.video}
+                      audio={message.audio}
+                      file={message.file}
                     />
                   ) : (
                     <MessageOther
@@ -567,6 +680,10 @@ const ChatArea = () => {
                       text={message.text}
                       pic={receiverData?.pic}
                       time={time}
+                      image={message.image}
+                      video={message.video}
+                      audio={message.audio}
+                      file={message.file}
                     />
                   );
                 }
@@ -621,13 +738,48 @@ const ChatArea = () => {
                     className={`flex-shrink-0 hover:scale-110 transition-transform duration-300 ${
                       lightTheme ? "hover:bg-gray-100" : "hover:bg-[#3C3D37]"
                     } transition-all duration-300`}
+                    onClick={handleAttachClick}
                   >
                     <AttachFileIcon
                       className={lightTheme ? "text-gray-600" : "text-gray-300"}
                       fontSize="small"
                     />
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      className="hidden"
+                      onChange={handleFileChange}
+                      accept="image/*,video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    />
                   </IconButton>
                 </Tooltip>
+                {/* Show selected file names */}
+                {selectedFiles.length > 0 && (
+                  <div className="flex flex-row overflow-x-auto space-x-2 h-8 w-full pr-4 absolute left-0 top-[-2.5rem] ml-3 z-20 hide-scrollbar">
+                    {selectedFiles.map((file, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center text-white bg-gray-200 dark:bg-gray-700 rounded-full px-3 py-1 text-xs shadow border border-gray-300 dark:border-gray-600 cursor-pointer"
+                      >
+                        <InsertDriveFileIcon
+                          fontSize="small"
+                          className="mr-1"
+                        />
+                        <span className="truncate max-w-[80px]">
+                          {file.name}
+                        </span>
+                        <button
+                          className="ml-2 text-red-500 hover:text-red-700"
+                          onClick={() => handleRemoveFile(idx)}
+                          type="button"
+                        >
+                          <CloseIcon fontSize="small" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <ClickAwayListener onClickAway={handleClickAway}>
                   <div className="relative">
@@ -646,6 +798,7 @@ const ChatArea = () => {
                               : "bg-[#4A4B45]"
                             : ""
                         }`}
+                        disabled={selectedFiles.length > 0}
                       >
                         <EmojiEmotionsIcon
                           className={
@@ -716,6 +869,7 @@ const ChatArea = () => {
                         ? "bg-gray-100 text-gray-800 focus:bg-gray-200 focus:shadow-inner"
                         : "bg-[#3C3D37] text-white focus:bg-[#444440] focus:shadow-inner"
                     } transition-all duration-300`}
+                    disabled={selectedFiles.length > 0}
                     // Prevent keyboard from closing
                     onBlur={(e) => {
                       e.preventDefault();
@@ -742,14 +896,18 @@ const ChatArea = () => {
                   <IconButton
                     size={isSmallScreen ? "small" : "medium"}
                     onClick={handleSendMessage}
-                    disabled={!messageToBeSend.trim()}
+                    disabled={
+                      !messageToBeSend.trim() && selectedFiles.length === 0
+                    }
                     className={`${
-                      messageToBeSend.trim() ? "opacity-100" : "opacity-60"
+                      messageToBeSend.trim() || selectedFiles.length > 0
+                        ? "opacity-100"
+                        : "opacity-60"
                     }`}
                   >
                     <TelegramIcon
                       className={`${
-                        messageToBeSend.trim()
+                        messageToBeSend.trim() || selectedFiles.length > 0
                           ? lightTheme
                             ? "text-blue-500"
                             : "text-blue-400"

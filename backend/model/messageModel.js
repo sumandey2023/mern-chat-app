@@ -18,6 +18,15 @@ const messageModel = mongoose.Schema(
     image: {
       type: String,
     },
+    video: {
+      type: String,
+    },
+    audio: {
+      type: String,
+    },
+    file: {
+      type: String,
+    },
   },
   {
     timestamps: true,
