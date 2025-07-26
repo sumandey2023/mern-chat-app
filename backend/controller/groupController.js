@@ -3,6 +3,9 @@ const groupChatModel = require("../model/groupChatModel");
 const groupMessageModel = require("../model/groupMessageModel");
 const cloudinary = require("cloudinary").v2;
 const { io } = require("../index");
+const multer = require("multer");
+const upload = multer({ storage: multer.memoryStorage() });
+const uploadFile = require("../services/imagekit.service");
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -129,22 +132,60 @@ const getGroupMemberList = asyncHandler(async (req, res) => {
 
 const sendGroupMessage = asyncHandler(async (req, res) => {
   try {
-    const data = req.body.message;
     const groupId = req.params.id;
     const senderId = req.user._id;
-    const image = "";
-
-    const message = await groupMessageModel.create({
-      senderId,
-      groupId,
-      text: data,
-      image,
-    });
-
-    res.status(200).json(message);
+    const { text } = req.body;
+    const files = req.files;
+    console.log(text);
+    if (files && files.length > 0) {
+      const newMessages = [];
+      for (const file of files) {
+        const fileType = file.mimetype.split("/")[0];
+        if (fileType === "image") {
+          const image = await uploadFile(file);
+          const newMessage = await groupMessageModel.create({
+            senderId,
+            groupId,
+            image: image.url,
+          });
+          newMessages.push(newMessage);
+        } else if (fileType === "video") {
+          const video = await uploadFile(file);
+          const newMessage = await groupMessageModel.create({
+            senderId,
+            groupId,
+            video: video.url,
+          });
+          newMessages.push(newMessage);
+        } else if (fileType === "audio") {
+          const audio = await uploadFile(file);
+          const newMessage = await groupMessageModel.create({
+            senderId,
+            groupId,
+            audio: audio.url,
+          });
+          newMessages.push(newMessage);
+        } else {
+          const uploadedFile = await uploadFile(file);
+          const newMessage = await groupMessageModel.create({
+            senderId,
+            groupId,
+            file: uploadedFile.url,
+          });
+          newMessages.push(newMessage);
+        }
+      }
+      res.status(200).send(newMessages);
+    } else {
+      const newMessage = await groupMessageModel.create({
+        senderId,
+        groupId,
+        text,
+      });
+      res.status(200).send(newMessage);
+    }
   } catch (error) {
     console.log(error);
-
     res.status(500).send("Internal Server error");
   }
 });

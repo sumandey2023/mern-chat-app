@@ -23,7 +23,7 @@ Router.get("/groupDetails/:id", isLoggedIn, getGroupDetails);
 Router.get("/groupMemberList/:id", isLoggedIn, getGroupMemberList);
 Router.post(
   "/sendMessage/:id",
-  upload.single("pic"),
+
   isLoggedIn,
   sendGroupMessage
 );
