@@ -5,6 +5,9 @@ import {
   InputAdornment,
   IconButton,
   Paper,
+  Box,
+  Typography,
+  CircularProgress,
 } from "@mui/material";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
@@ -16,6 +19,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import api from "../config/api";
+import Lottie from "lottie-react";
 import "react-toastify/dist/ReactToastify.css";
 
 const Auth = () => {
@@ -30,6 +34,10 @@ const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [profilePic, setProfilePic] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [spinnerData, setSpinnerData] = useState(null);
+  const [isLoginLoading, setIsLoginLoading] = useState(false);
+  const [isSignupLoading, setIsSignupLoading] = useState(false);
 
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
@@ -64,12 +72,43 @@ const Auth = () => {
   //   }
   // }, []);
 
+  // Load spinner animation
   useEffect(() => {
-    const token = localStorage.getItem("addatoken");
-    if (token) {
-      navigate("/app/welcome");
-    }
+    const loadSpinner = async () => {
+      try {
+        const response = await fetch("/spinner.json");
+        const data = await response.json();
+        setSpinnerData(data);
+      } catch (error) {
+        console.error("Error loading spinner:", error);
+      }
+    };
+    loadSpinner();
   }, []);
+
+  // Check authentication and redirect
+  useEffect(() => {
+    const checkAuthAndRedirect = async () => {
+      const token = localStorage.getItem("addatoken");
+      if (token) {
+        setIsLoading(true);
+        try {
+          // Verify token is valid by making a quick API call
+          await api.get("/user/check-auth", { withCredentials: true });
+          // Add a small delay for better UX
+          setTimeout(() => {
+            navigate("/app/welcome");
+          }, 1500);
+        } catch (error) {
+          // Token is invalid, remove it
+          localStorage.removeItem("addatoken");
+          setIsLoading(false);
+        }
+      }
+    };
+
+    checkAuthAndRedirect();
+  }, [navigate]);
 
   useEffect(() => {
     if (redirectMessage) {
@@ -99,16 +138,11 @@ const Auth = () => {
   };
 
   const loginHandler = async () => {
+    setIsLoginLoading(true);
     try {
-      toast.info("Loging you up please wait..", {
-        position: "top-right",
-        toastId: "signup-toast",
+      const { data } = await api.post("/user/login", formData, {
+        withCredentials: true,
       });
-      const { data } = await api.post(
-        "/user/login", // or /signup
-        formData,
-        { withCredentials: true }
-      );
 
       localStorage.setItem("addatoken", data.token);
       navigate("/app/welcome", { state: { toastMessage: data.message } });
@@ -116,6 +150,8 @@ const Auth = () => {
       console.log(error.response);
       const errorMessage = error.response?.data?.message || "Login failed!";
       toast.error(errorMessage, { position: "top-right" });
+    } finally {
+      setIsLoginLoading(false);
     }
   };
 
@@ -125,11 +161,7 @@ const Auth = () => {
       return;
     }
 
-    toast.info("Signing you up please wait..", {
-      position: "top-right",
-      toastId: "signup-toast",
-      autoClose: 15000, // prevents duplicate toasts
-    });
+    setIsSignupLoading(true);
     try {
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name);
@@ -155,8 +187,123 @@ const Auth = () => {
       const errorMessage = error.response?.data?.message || "Signup failed!";
 
       toast.error(errorMessage, { position: "top-right" });
+    } finally {
+      setIsSignupLoading(false);
     }
   };
+
+  // Show loading screen if checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div
+            className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-bounce"
+            style={{ animationDuration: "6s", animationDelay: "0s" }}
+          ></div>
+          <div
+            className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-bounce"
+            style={{ animationDuration: "6s", animationDelay: "2s" }}
+          ></div>
+          <div
+            className="absolute top-40 left-40 w-80 h-80 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-bounce"
+            style={{ animationDuration: "6s", animationDelay: "4s" }}
+          ></div>
+        </div>
+
+        <div className="text-center relative z-10 animate-fade-in">
+          {spinnerData ? (
+            <div className="mb-8 transform hover:scale-105 transition-transform duration-300">
+              <Lottie
+                animationData={spinnerData}
+                className="w-40 h-40 mx-auto drop-shadow-lg"
+                loop={true}
+              />
+            </div>
+          ) : (
+            <div className="mb-8 transform hover:scale-105 transition-transform duration-300">
+              <CircularProgress
+                size={120}
+                thickness={4}
+                sx={{
+                  color: "#3B82F6",
+                  "& .MuiCircularProgress-circle": {
+                    strokeLinecap: "round",
+                  },
+                  filter: "drop-shadow(0 4px 8px rgba(59, 130, 246, 0.3))",
+                }}
+              />
+            </div>
+          )}
+
+          <div className="space-y-6">
+            <Typography
+              variant="h4"
+              component="h2"
+              className="text-gray-800 font-bold mb-2"
+              sx={{
+                background: "linear-gradient(45deg, #3B82F6, #8B5CF6)",
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                textShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                animation: "fadeInUp 0.8s ease-out",
+              }}
+            >
+              Welcome back! 🎉
+            </Typography>
+
+            <Typography
+              variant="body1"
+              className="text-gray-600 max-w-md mx-auto leading-relaxed"
+              sx={{
+                animation: "fadeInUp 0.8s ease-out 0.2s both",
+              }}
+            >
+              Loading your account and preparing everything for you...
+            </Typography>
+
+            <div className="mt-6 flex justify-center">
+              <div className="flex space-x-2">
+                <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
+                <div
+                  className="w-3 h-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse"
+                  style={{ animationDelay: "0.2s" }}
+                ></div>
+                <div
+                  className="w-3 h-3 bg-gradient-to-r from-pink-500 to-blue-500 rounded-full animate-pulse"
+                  style={{ animationDelay: "0.4s" }}
+                ></div>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <div className="w-48 h-1 bg-gray-200 rounded-full mx-auto overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <style>{`
+          @keyframes fadeInUp {
+            from { 
+              opacity: 0; 
+              transform: translateY(20px); 
+            }
+            to { 
+              opacity: 1; 
+              transform: translateY(0); 
+            }
+          }
+          .animate-fade-in {
+            animation: fadeInUp 0.8s ease-out;
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -440,6 +587,7 @@ const Auth = () => {
             variant="contained"
             fullWidth
             className="py-2 rounded-lg"
+            disabled={isLoginLoading || isSignupLoading}
             sx={{
               textTransform: "none",
               fontSize: "14px",
@@ -451,11 +599,24 @@ const Auth = () => {
                 background: "linear-gradient(90deg, #2563eb 0%, #4f46e5 100%)",
                 boxShadow: "0 10px 15px -3px rgba(59, 130, 246, 0.4)",
               },
+              "&:disabled": {
+                background: "linear-gradient(90deg, #9ca3af 0%, #d1d5db 100%)",
+                boxShadow: "none",
+              },
               transition: "all 0.2s ease",
             }}
             onClick={isSignUp ? signUpHandler : loginHandler}
           >
-            {isSignUp ? "Create Account" : "Sign In"}
+            {isLoginLoading || isSignupLoading ? (
+              <div className="flex items-center gap-2">
+                <CircularProgress size={16} sx={{ color: "white" }} />
+                {isSignUp ? "Creating Account..." : "Signing In..."}
+              </div>
+            ) : isSignUp ? (
+              "Create Account"
+            ) : (
+              "Sign In"
+            )}
           </Button>
         </div>
 

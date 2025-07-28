@@ -32,7 +32,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Handle unauthorized access
-      localStorage.removeItem("token");
+      localStorage.removeItem("addatoken");
       window.location.href = "/";
     }
     return Promise.reject(error);

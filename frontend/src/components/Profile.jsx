@@ -97,7 +97,7 @@ const Profile = () => {
   const handleLogout = async () => {
     try {
       const loadingToast = toast.loading("Logging out...");
-      await api.post(
+      const response = await api.post(
         "/user/logout",
         {},
         {
@@ -107,7 +107,10 @@ const Profile = () => {
           },
         }
       );
-      localStorage.clear();
+
+      // Clear localStorage token specifically
+      localStorage.removeItem("addatoken");
+
       toast.dismiss(loadingToast);
       toast.success("Logged out successfully!");
       setTimeout(() => {
