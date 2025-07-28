@@ -27,7 +27,7 @@ live websit - https://adda-pi.vercel.app/
 - **Backend:** Node.js, Express.js
 - **Database:** MongoDB (Mongoose)
 - **Real-Time:** Socket.IO
-- **File Storage:** ImageKit (or your preferred cloud storage)
+- **File Storage:** ImageKit 
 - **Other:** JWT Auth, REST API, Vite, Axios
 
 ---
