@@ -20,7 +20,7 @@ const MessageSelf = ({ text, time, isTemp, image, video, audio, file }) => {
   return (
     <div className="flex justify-end mb-4">
       <div
-        className={`max-w-[70%] px-3 pt-2 pb-6 min-w-[100px] sm:max-w-[55vw] rounded-t-xl rounded-bl-xl rounded-br-lg  relative transition-all duration-200
+        className={`max-w-[75%] px-4 pt-3 pb-7 min-w-[120px] sm:max-w-[60vw] rounded-t-xl rounded-bl-xl rounded-br-lg  relative transition-all duration-200
           ${
             hasText
               ? lightTheme
@@ -130,7 +130,7 @@ const MessageSelf = ({ text, time, isTemp, image, video, audio, file }) => {
             {lines.map((line, index) => (
               <p
                 key={index}
-                className="text-sm leading-relaxed whitespace-pre-line"
+                className="text-base leading-relaxed whitespace-pre-line"
               >
                 {line || " "} {/* Handle empty lines */}
               </p>
@@ -140,11 +140,11 @@ const MessageSelf = ({ text, time, isTemp, image, video, audio, file }) => {
         {/* Timestamp and sending indicator absolutely positioned for text */}
         {hasText && (
           <div
-            className={`absolute bottom-1 right-2.5 flex items-center gap-1`}
+            className={`absolute bottom-1 right-2.5 flex items-center gap-1 `}
           >
             <span className="text-xs opacity-70">{time}</span>
             {isTemp && (
-              <span className="ml-2 text-xs opacity-70">
+              <span className="ml-2 text-[10px] opacity-70">
                 <span className="animate-pulse">Sending...</span>
               </span>
             )}

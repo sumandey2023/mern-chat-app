@@ -66,7 +66,7 @@ const MessageOther = ({
 
       {/* Message bubble or media */}
       <div
-        className={`px-3 py-2 pb-6 min-w-[100px] max-w-[70vw] sm:max-w-[55vw] rounded-t-xl rounded-br-xl rounded-bl-lg relative transition-all duration-200
+        className={`px-4 py-3 pb-7 min-w-[120px] max-w-[75vw] sm:max-w-[60vw] rounded-t-xl rounded-br-xl rounded-bl-lg relative transition-all duration-200
           ${bubbleStyle}
           ${hasMedia ? "p-0 bg-transparent border-none shadow-none" : ""}
           `}
@@ -151,7 +151,7 @@ const MessageOther = ({
             {lines.map((line, index) => (
               <p
                 key={index}
-                className="text-xs lg:text-sm leading-relaxed whitespace-pre-line"
+                className="text-sm lg:text-base leading-relaxed whitespace-pre-line"
               >
                 {line || " "} {/* Handle empty lines */}
               </p>
