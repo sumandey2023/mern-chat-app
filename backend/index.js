@@ -27,7 +27,6 @@ const io = new Server(server, {
 
 db();
 
-// CORS configuration
 const allowedOrigins = ["http://localhost:5173", "https://adda-pi.vercel.app"];
 
 app.use(
@@ -36,8 +35,6 @@ app.use(
     credentials: true,
   })
 );
-
-// Preflight support
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -59,15 +56,13 @@ const groupRooms = new Map();
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
 
-  // When a user connects, they should emit their userId
   socket.on("addUser", (userId) => {
     onlineUsers.set(userId, socket.id);
-    // Broadcast to all clients that a user is online
+
     io.emit("getUsers", Array.from(onlineUsers.keys()));
     console.log(`User ${userId} is online with socket ID: ${socket.id}`);
   });
 
-  // Join group room
   socket.on("joinGroup", (groupId) => {
     socket.join(groupId);
     if (!groupRooms.has(groupId)) {
@@ -77,7 +72,6 @@ io.on("connection", (socket) => {
     console.log(`User ${socket.id} joined group ${groupId}`);
   });
 
-  // Leave group room
   socket.on("leaveGroup", (groupId) => {
     socket.leave(groupId);
     if (groupRooms.has(groupId)) {
@@ -89,17 +83,14 @@ io.on("connection", (socket) => {
     console.log(`User ${socket.id} left group ${groupId}`);
   });
 
-  // Handle sending messages to group
   socket.on("sendGroupMessage", (data) => {
     io.to(data.groupId).emit("receiveGroupMessage", data);
   });
 
-  // Handle group member updates
   socket.on("groupMemberUpdate", (data) => {
     io.to(data.groupId).emit("groupMemberUpdated", data);
   });
 
-  // Handle typing indicator in group
   socket.on("groupTyping", (data) => {
     socket.to(data.groupId).emit("groupUserTyping", {
       senderId: data.senderId,
@@ -107,7 +98,6 @@ io.on("connection", (socket) => {
     });
   });
 
-  // Handle sending messages to individual users
   socket.on("sendMessage", (data) => {
     const receiverSocketId = onlineUsers.get(data.receiverId);
     if (receiverSocketId) {
@@ -115,7 +105,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Handle typing indicator for individual chats
   socket.on("typing", (data) => {
     const receiverSocketId = onlineUsers.get(data.receiverId);
     if (receiverSocketId) {
@@ -126,19 +115,18 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Handle disconnect
   socket.on("disconnect", () => {
     console.log(`User disconnected: ${socket.id}`);
-    // Find and remove the user from onlineUsers
+
     for (const [userId, sid] of onlineUsers.entries()) {
       if (sid === socket.id) {
         onlineUsers.delete(userId);
-        // Broadcast to all clients that a user is offline
+
         io.emit("getUsers", Array.from(onlineUsers.keys()));
         break;
       }
     }
-    // Clean up group rooms
+
     for (const [groupId, sockets] of groupRooms.entries()) {
       sockets.delete(socket.id);
       if (sockets.size === 0) {
@@ -148,7 +136,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// Use server.listen instead of app.listen to enable Socket.io
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
