@@ -1,6 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const genAI = new GoogleGenerativeAI("AIzaSyB2LxdJmoNhqeJbw3mXZip5FByi0MH8c14");
+const genAI = new GoogleGenerativeAI("AIzaSyBkz-UOH0hbe0RxbczKB6FVU-lBE2RP48k");
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 const ai = asyncHandler(async (req, res) => {
