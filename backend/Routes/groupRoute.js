@@ -17,7 +17,7 @@ const {
 
 const Router = express.Router();
 
-Router.post("/createGroup", upload.single("pic"), isLoggedIn, createGroup);
+Router.post("/createGroup", isLoggedIn, createGroup);
 Router.get("/getGroups", isLoggedIn, getGroupsForUser);
 Router.get("/groupDetails/:id", isLoggedIn, getGroupDetails);
 Router.get("/groupMemberList/:id", isLoggedIn, getGroupMemberList);
