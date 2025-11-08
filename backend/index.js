@@ -19,7 +19,11 @@ const PORT = process.env.PORT || 5000;
 
 const io = new Server(server, {
   cors: {
-    origin: ["https://adda-pi.vercel.app", "http://localhost:5173"],
+    origin: [
+      "https://adda-pi.vercel.app",
+      "http://localhost:5173",
+      "http://localhost:4173",
+    ],
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -27,7 +31,11 @@ const io = new Server(server, {
 
 db();
 
-const allowedOrigins = ["http://localhost:5173", "https://adda-pi.vercel.app"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://adda-pi.vercel.app",
+  "http://localhost:4173",
+];
 
 app.use(
   cors({
