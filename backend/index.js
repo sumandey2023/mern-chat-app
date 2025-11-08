@@ -23,6 +23,7 @@ const io = new Server(server, {
       "https://adda-pi.vercel.app",
       "http://localhost:5173",
       "http://localhost:4173",
+      "https://adda20-new.vercel.app",
     ],
     methods: ["GET", "POST"],
     credentials: true,
@@ -35,6 +36,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://adda-pi.vercel.app",
   "http://localhost:4173",
+  "https://adda20-new.vercel.app",
 ];
 
 app.use(
