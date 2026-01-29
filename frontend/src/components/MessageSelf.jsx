@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
+import api from "../config/api";
 
 const MessageSelf = ({
   text,
@@ -34,27 +35,23 @@ const MessageSelf = ({
   const confirmDelete = async () => {
     setIsDeleting(true);
     try {
-      const endpoint = isGroupMessage
-        ? `http://localhost:5000/group/message/${messageId}`
-        : `http://localhost:5000/message/${messageId}`;
+      const path = isGroupMessage
+        ? `/group/message/${messageId}`
+        : `/message/${messageId}`;
 
-      const response = await fetch(endpoint, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-      if (response.ok) {
+      const response = await api.delete(path);
+      if (response && (response.status === 200 || response.status === 204)) {
         setShowDeleteConfirm(false);
         if (onDelete) onDelete(messageId);
       } else {
-        const errorData = await response.json();
-        alert(errorData.message || "Failed to delete message");
+        alert(
+          (response?.data && response.data.message) ||
+            "Failed to delete message",
+        );
       }
     } catch (error) {
       console.error("Error deleting message:", error);
-      alert("Failed to delete message");
+      alert(error?.response?.data?.message || "Failed to delete message");
     } finally {
       setIsDeleting(false);
     }
