@@ -13,6 +13,7 @@ const {
   removeMemberFromGroup,
   makeAdminOfGroup,
   leaveGroup,
+  deleteGroupMessage,
 } = require("../controller/groupController");
 
 const Router = express.Router();
@@ -25,11 +26,12 @@ Router.post(
   "/sendMessage/:id",
 
   isLoggedIn,
-  sendGroupMessage
+  sendGroupMessage,
 );
 Router.get("/allChats/:id", isLoggedIn, getAllChatOfGroup);
 Router.post("/addNewMember", isLoggedIn, addNewMembersToGroup);
 Router.post("/removeMember/:id", isLoggedIn, removeMemberFromGroup);
 Router.post("/makeAdmin/:id", isLoggedIn, makeAdminOfGroup);
 Router.get("/leaveGroup/:id", isLoggedIn, leaveGroup);
+Router.delete("/message/:id", isLoggedIn, deleteGroupMessage);
 module.exports = Router;

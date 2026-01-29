@@ -162,7 +162,7 @@ const ChatArea = () => {
         const res = await api.post(
           "/user/add-to-chat-list",
           { userId },
-          { withCredentials: true }
+          { withCredentials: true },
         );
         if (res.status === 200) {
           console.log("User added to chat list successfully");
@@ -204,7 +204,7 @@ const ChatArea = () => {
           const res = await api.post(
             "/user/add-to-chat-list",
             { userId },
-            { withCredentials: true }
+            { withCredentials: true },
           );
           if (res.status === 200) {
             console.log("User added to chat list successfully");
@@ -252,30 +252,30 @@ const ChatArea = () => {
         })),
         image: selectedFiles.find((f) => f.type.startsWith("image/"))
           ? URL.createObjectURL(
-              selectedFiles.find((f) => f.type.startsWith("image/"))
+              selectedFiles.find((f) => f.type.startsWith("image/")),
             )
           : undefined,
         video: selectedFiles.find((f) => f.type.startsWith("video/"))
           ? URL.createObjectURL(
-              selectedFiles.find((f) => f.type.startsWith("video/"))
+              selectedFiles.find((f) => f.type.startsWith("video/")),
             )
           : undefined,
         audio: selectedFiles.find((f) => f.type.startsWith("audio/"))
           ? URL.createObjectURL(
-              selectedFiles.find((f) => f.type.startsWith("audio/"))
+              selectedFiles.find((f) => f.type.startsWith("audio/")),
             )
           : undefined,
         file: selectedFiles.find(
           (f) =>
             !f.type.startsWith("image/") &&
             !f.type.startsWith("video/") &&
-            !f.type.startsWith("audio/")
+            !f.type.startsWith("audio/"),
         )
           ? selectedFiles.find(
               (f) =>
                 !f.type.startsWith("image/") &&
                 !f.type.startsWith("video/") &&
-                !f.type.startsWith("audio/")
+                !f.type.startsWith("audio/"),
             ).name
           : undefined,
       };
@@ -312,8 +312,8 @@ const ChatArea = () => {
           socket.current.emit("sendMessage", data);
           setMessages((prev) =>
             prev.map((msg) =>
-              msg._id === tempId ? { ...data, isTemp: false } : msg
-            )
+              msg._id === tempId ? { ...data, isTemp: false } : msg,
+            ),
           );
         }
       } catch (error) {
@@ -359,7 +359,7 @@ const ChatArea = () => {
             "Content-Type": "application/json",
           },
           withCredentials: true,
-        }
+        },
       );
 
       // Send message through socket
@@ -371,7 +371,7 @@ const ChatArea = () => {
 
       // Replace temporary message with real one
       setMessages((prev) =>
-        prev.map((msg) => (msg.isTemp ? { ...data, isTemp: false } : msg))
+        prev.map((msg) => (msg.isTemp ? { ...data, isTemp: false } : msg)),
       );
 
       // Send stop typing event
@@ -599,8 +599,8 @@ const ChatArea = () => {
                       ? "text-green-600"
                       : "text-green-400"
                     : lightTheme
-                    ? "text-gray-500"
-                    : "text-gray-400"
+                      ? "text-gray-500"
+                      : "text-gray-400"
                 } transition-all duration-300`}
               >
                 {onlineUsers.includes(receiverData._id) ? "Online" : "Offline"}
@@ -663,6 +663,11 @@ const ChatArea = () => {
                   const message = item.data;
 
                   const time = formatTime(message.createdAt);
+                  const handleDeleteMessage = (messageId) => {
+                    setMessages((prev) =>
+                      prev.filter((msg) => msg._id !== messageId),
+                    );
+                  };
                   return message.senderId === loggedInUser._id ? (
                     <MessageSelf
                       key={`msg-${index}`}
@@ -673,6 +678,8 @@ const ChatArea = () => {
                       video={message.video}
                       audio={message.audio}
                       file={message.file}
+                      messageId={message._id}
+                      onDelete={handleDeleteMessage}
                     />
                   ) : (
                     <MessageOther
@@ -912,8 +919,8 @@ const ChatArea = () => {
                             ? "text-blue-500"
                             : "text-blue-400"
                           : lightTheme
-                          ? "text-gray-400"
-                          : "text-gray-500"
+                            ? "text-gray-400"
+                            : "text-gray-500"
                       }`}
                       fontSize={isSmallScreen ? "small" : "medium"}
                     />
@@ -974,8 +981,8 @@ const ChatArea = () => {
                               ? "#10B981"
                               : "#34D399"
                             : lightTheme
-                            ? "#3498DB"
-                            : "#4DD0E1"
+                              ? "#3498DB"
+                              : "#4DD0E1"
                         }`,
                         bgcolor: lightTheme ? "#f0f7fc" : "#223240",
                         boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
@@ -990,8 +997,8 @@ const ChatArea = () => {
                                 ? "#3498DB"
                                 : "#4DD0E1"
                               : lightTheme
-                              ? "#3498DB"
-                              : "#4DD0E1",
+                                ? "#3498DB"
+                                : "#4DD0E1",
                           }}
                         />
                       )}
@@ -1017,8 +1024,8 @@ const ChatArea = () => {
                           ? "text-green-600"
                           : "text-green-400"
                         : lightTheme
-                        ? "text-gray-600"
-                        : "text-gray-300"
+                          ? "text-gray-600"
+                          : "text-gray-300"
                     }`}
                   >
                     {onlineUsers.includes(receiverData._id)
@@ -1173,8 +1180,8 @@ const ChatArea = () => {
                               ? "#10B981"
                               : "#34D399"
                             : lightTheme
-                            ? "#3498DB"
-                            : "#4DD0E1"
+                              ? "#3498DB"
+                              : "#4DD0E1"
                         }`,
                         bgcolor: lightTheme ? "#f0f7fc" : "#223240",
                         boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
@@ -1189,8 +1196,8 @@ const ChatArea = () => {
                                 ? "#3498DB"
                                 : "#4DD0E1"
                               : lightTheme
-                              ? "#3498DB"
-                              : "#4DD0E1",
+                                ? "#3498DB"
+                                : "#4DD0E1",
                           }}
                         />
                       )}
@@ -1216,8 +1223,8 @@ const ChatArea = () => {
                           ? "text-green-600"
                           : "text-green-400"
                         : lightTheme
-                        ? "text-gray-600"
-                        : "text-gray-300"
+                          ? "text-gray-600"
+                          : "text-gray-300"
                     }`}
                   >
                     {onlineUsers.includes(receiverData._id)

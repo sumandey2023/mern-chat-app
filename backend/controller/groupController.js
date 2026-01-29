@@ -56,7 +56,7 @@ const createGroup = asyncHandler(async (req, res) => {
         `data:${req.file.mimetype};base64,${base64Image}`,
         {
           public_id: `${groupName}-group-pic` || undefined,
-        }
+        },
       );
 
       pic = result.secure_url; // or store buffer, or upload to cloud
@@ -220,7 +220,7 @@ const addNewMembersToGroup = asyncHandler(async (req, res) => {
     const currentMembers = group.members.map((id) => id.toString());
 
     const newMembers = addList.filter(
-      (userId) => !currentMembers.includes(userId)
+      (userId) => !currentMembers.includes(userId),
     );
 
     if (!newMembers.length) {
@@ -260,7 +260,7 @@ const removeMemberFromGroup = asyncHandler(async (req, res) => {
         await groupChatModel.findByIdAndUpdate(
           groupID,
           { $pull: { members: removeUserId } },
-          { new: true }
+          { new: true },
         );
         return res
           .status(200)
@@ -284,7 +284,7 @@ const makeAdminOfGroup = asyncHandler(async (req, res) => {
       await groupChatModel.findByIdAndUpdate(
         groupId,
         { $addToSet: { admin: personWhoBecameAdmin } },
-        { new: true }
+        { new: true },
       );
 
       return res
@@ -315,13 +315,13 @@ const leaveGroup = asyncHandler(async (req, res) => {
         await groupChatModel.findByIdAndUpdate(
           groupId,
           { $pull: { admin: userId } },
-          { new: true }
+          { new: true },
         );
       }
       await groupChatModel.findByIdAndUpdate(
         groupId,
         { $pull: { members: userId } },
-        { new: true }
+        { new: true },
       );
 
       return res
@@ -330,6 +330,34 @@ const leaveGroup = asyncHandler(async (req, res) => {
     }
   } catch (error) {
     return res.status(400).send(error.message);
+  }
+});
+
+const deleteGroupMessage = asyncHandler(async (req, res) => {
+  try {
+    const { id: messageId } = req.params;
+    const logedInUserId = req.user._id;
+
+    // Find the message
+    const message = await groupMessageModel.findById(messageId);
+
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    // Check if the logged-in user is the sender
+    if (message.senderId.toString() !== logedInUserId.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to delete this message" });
+    }
+
+    // Delete the message
+    await groupMessageModel.findByIdAndDelete(messageId);
+
+    res.status(200).json({ message: "Message deleted successfully" });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 });
 
@@ -344,4 +372,5 @@ module.exports = {
   removeMemberFromGroup,
   makeAdminOfGroup,
   leaveGroup,
+  deleteGroupMessage,
 };

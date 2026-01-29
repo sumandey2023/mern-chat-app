@@ -108,7 +108,7 @@ const GroupChatArea = () => {
               `/user/get-chat-user/${data.senderId}`,
               {
                 withCredentials: true,
-              }
+              },
             );
             // Update the message with complete sender information
             data.senderId = userData;
@@ -149,7 +149,7 @@ const GroupChatArea = () => {
               `/group/groupDetails/${id}`,
               {
                 withCredentials: true,
-              }
+              },
             );
             setGroupDetail(groupData);
           }
@@ -159,7 +159,7 @@ const GroupChatArea = () => {
             `/group/groupMemberList/${id}`,
             {
               withCredentials: true,
-            }
+            },
           );
           setMemberList(memberData.members);
           setAdmins(memberData.admin);
@@ -245,7 +245,7 @@ const GroupChatArea = () => {
           headers: {
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (!res.ok) {
@@ -261,7 +261,7 @@ const GroupChatArea = () => {
       // Filter out users who are already members of the group
       const filteredResult = result.filter(
         (user) =>
-          !groupDetail.members?.some((member) => member._id === user._id)
+          !groupDetail.members?.some((member) => member._id === user._id),
       );
       setFilteredUsers(filteredResult);
     } catch (error) {
@@ -325,7 +325,7 @@ const GroupChatArea = () => {
         `/group/groupMemberList/${id}`,
         {
           withCredentials: true,
-        }
+        },
       );
       setMemberList(memberData.members);
       setAdmins(memberData.admin);
@@ -368,7 +368,7 @@ const GroupChatArea = () => {
         `/group/groupMemberList/${id}`,
         {
           withCredentials: true,
-        }
+        },
       );
       setMemberList(memberData.members);
       setAdmins(memberData.admin);
@@ -412,7 +412,7 @@ const GroupChatArea = () => {
         `/group/groupMemberList/${id}`,
         {
           withCredentials: true,
-        }
+        },
       );
       setMemberList(memberData.members);
       setAdmins(memberData.admin);
@@ -513,7 +513,7 @@ const GroupChatArea = () => {
       } catch (error) {
         // Remove temp messages on error
         setAllMessages((prev) =>
-          prev.filter((msg) => !msg.isTemp || !tempIds.includes(msg._id))
+          prev.filter((msg) => !msg.isTemp || !tempIds.includes(msg._id)),
         );
         toast.error("Failed to send file(s). Please try again.");
       }
@@ -556,7 +556,7 @@ const GroupChatArea = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
 
       // Send message through socket
@@ -569,8 +569,8 @@ const GroupChatArea = () => {
       // Update the temporary message with the actual message data from the server
       setAllMessages((prev) =>
         prev.map((msg) =>
-          msg === tempMessage ? { ...data, senderId: loggedInUser } : msg
-        )
+          msg === tempMessage ? { ...data, senderId: loggedInUser } : msg,
+        ),
       );
     } catch (error) {
       console.error("Failed to send message:", error);
@@ -885,6 +885,12 @@ const GroupChatArea = () => {
                       ? message.senderId._id === loggedInUser._id
                       : message.senderId === loggedInUser._id;
 
+                  const handleDeleteGroupMessage = (messageId) => {
+                    setAllMessages((prev) =>
+                      prev.filter((msg) => msg._id !== messageId),
+                    );
+                  };
+
                   return isCurrentUser ? (
                     <MessageSelf
                       key={`msg-${index}`}
@@ -895,6 +901,9 @@ const GroupChatArea = () => {
                       audio={message.audio}
                       file={message.file}
                       isTemp={message.isTemp}
+                      messageId={message._id}
+                      onDelete={handleDeleteGroupMessage}
+                      isGroupMessage={true}
                     />
                   ) : (
                     <MessageOtherGroup
@@ -1149,8 +1158,8 @@ const GroupChatArea = () => {
                             ? "text-blue-500"
                             : "text-blue-400"
                           : lightTheme
-                          ? "text-gray-400"
-                          : "text-gray-500"
+                            ? "text-gray-400"
+                            : "text-gray-500"
                       }`}
                       fontSize={isSmallScreen ? "small" : "medium"}
                     />

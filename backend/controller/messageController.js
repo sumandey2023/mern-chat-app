@@ -84,4 +84,32 @@ const sendMessage = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { getMessages, sendMessage };
+const deleteMessage = asyncHandler(async (req, res) => {
+  try {
+    const { id: messageId } = req.params;
+    const logedInUserId = req.user._id;
+
+    // Find the message
+    const message = await messageModel.findById(messageId);
+
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    // Check if the logged-in user is the sender
+    if (message.senderId.toString() !== logedInUserId.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to delete this message" });
+    }
+
+    // Delete the message
+    await messageModel.findByIdAndDelete(messageId);
+
+    res.status(200).json({ message: "Message deleted successfully" });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+module.exports = { getMessages, sendMessage, deleteMessage };
